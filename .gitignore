@@ -15,13 +15,7 @@ android/local.properties
 android/app/google-services.json  # Sensitive Firebase config
 *.jks  # Keystore files
 
-# iOS
-ios/.generated/
-ios/Flutter/Flutter.framework
-ios/Flutter/App.framework
-ios/Pods/
-ios/*.xcworkspace/
-ios/Runner/GoogleService-Info.plist  # Sensitive Firebase config
+
 
 # IDE
 .idea/
