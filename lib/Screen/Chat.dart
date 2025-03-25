@@ -4,7 +4,6 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
 import 'package:customer/Provider/SettingProvider.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 import 'package:customer/Helper/Session.dart';
@@ -44,7 +43,6 @@ class _ChatState extends State<Chat> {
     super.initState();
     downloadlist = <String?, String>{};
     CUR_TICK_ID = widget.id;
-    FlutterDownloader.registerCallback(downloadCallback);
     setupChannel();
     getMsg();
   }
@@ -210,24 +208,14 @@ class _ChatState extends State<Chat> {
       final String fileName = url!.substring(url.lastIndexOf("/") + 1);
       final File file = File("$_filePath/$fileName");
       final bool hasExisted = await file.exists();
-      if (downloadlist.containsKey(mid)) {
-        final tasks = await FlutterDownloader.loadTasksWithRawQuery(
-            query:
-                "SELECT status FROM task WHERE task_id=${downloadlist[mid]}",);
-        if (tasks == 4 || tasks == 5) downloadlist.remove(mid);
-      }
+    
       if (hasExisted) {
       } else if (downloadlist.containsKey(mid)) {
         setSnackbar(getTranslated(context, 'Downloading')!, context);
       } else {
         setSnackbar(getTranslated(context, 'Downloading')!, context);
-        final taskid = await FlutterDownloader.enqueue(
-            url: url,
-            savedDir: _filePath,
-            headers: {"auth": "test_for_sql_encoding"},);
-        setState(() {
-          downloadlist[mid] = taskid.toString();
-        });
+        
+        
       }
     }
   }
