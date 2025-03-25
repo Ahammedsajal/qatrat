@@ -1,0 +1,33 @@
+# Flutter/Dart
+*.g.dart
+*.mocks.dart
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+pubspec.lock  # Optional, but I recommend keeping it for Codemagic
+
+# Android
+android/.gradle/
+android/app/build/
+android/local.properties
+android/app/google-services.json  # Sensitive Firebase config
+*.jks  # Keystore files
+
+# iOS
+ios/.generated/
+ios/Flutter/Flutter.framework
+ios/Flutter/App.framework
+ios/Pods/
+ios/*.xcworkspace/
+ios/Runner/GoogleService-Info.plist  # Sensitive Firebase config
+
+# IDE
+.idea/
+.vscode/
+
+# Misc
+*.log
+.env
+.metadata
