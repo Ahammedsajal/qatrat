@@ -17,7 +17,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_html_to_pdf/flutter_html_to_pdf.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:http/http.dart' as http;
@@ -85,7 +84,6 @@ class StateOrder extends State<OrderDetail>
     super.initState();
     files.clear();
     reviewPhotos.clear();
-    FlutterDownloader.registerCallback(downloadCallback);
     buttonController = AnimationController(
         duration: const Duration(milliseconds: 2000), vsync: this,);
     buttonSqueezeanimation = Tween(
@@ -805,7 +803,7 @@ class StateOrder extends State<OrderDetail>
                     ],
                   ),
                 ),
-                if (orderItem.downloadAllowed == '1') downloadProductFile(context, orderItem.id!, orderItem) else const SizedBox.shrink(),
+              
                 Divider(
                   color: Theme.of(context).colorScheme.lightBlack,
                 ),
@@ -1917,163 +1915,12 @@ void showInvoiceDownloadDialog(BuildContext context, String filePath, String tar
   );
 }
 
-  downloadProductFile(
-      BuildContext context, String orderItemID, OrderItem orderItem,) {
-    if (orderItem.listStatus!.contains(DELIVERD) &&
-        orderItem.downloadAllowed == '1' &&
-        orderItem.isDownload == "0") {
-      return Row(
-        children: [
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: () async {
-                getDownloadLink(
-                  orderItemID,
-                );
-              },
-              icon: Icon(Icons.download,
-                  color: Theme.of(context).colorScheme.primarytheme,),
-              label: Text(
-                getTranslated(context, 'DWN_LBL')!,
-                style: TextStyle(
-                    color: Theme.of(context).colorScheme.primarytheme,),
-              ),
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: Theme.of(context).colorScheme.btnColor),
-              ),
-            ),
-          ),
-        ],
-      );
-    } else {
-      return const SizedBox.shrink();
-    }
-  }
+  
 
-  downloadLinkFile(String orderItemId) async {
-    if (currentLinkForDownload != '') {
-      print("inner link");
-      final status = await Permission.storage.request();
-      if (status == PermissionStatus.granted) {
-        if (mounted) {
-          setState(() {
-            _isProgress = true;
-          });
-        }
-        String? filePath;
-        if (Platform.isIOS) {
-          final target = await getApplicationDocumentsDirectory();
-          filePath = target.path;
-        } else {
-          final externalDirectory = await getExternalStorageDirectory();
-          final dir =
-              await Directory('${externalDirectory!.path}/Download').create();
-          filePath = dir.path;
-        }
-        final fileName = currentLinkForDownload
-            .substring(currentLinkForDownload.lastIndexOf('/') + 1);
-        final File file = File('$filePath/$fileName');
-        final bool hasExisted = await file.exists();
-        if (hasExisted) {
-          final openFile = await OpenFilex.open('$filePath/$fileName');
-        }
-        setSnackbar(getTranslated(context, 'Downloading')!, context);
-        print("filePath : $filePath");
-        final taskid = await FlutterDownloader.enqueue(
-          url: currentLinkForDownload,
-          savedDir: filePath,
-          headers: {'auth': 'test_for_sql_encoding'},
-        ).onError((error, stackTrace) {
-          if (mounted) {
-            setState(() {
-              _isProgress = false;
-            });
-          }
-          setSnackbar('Error : $error', context);
-          return null;
-        }).catchError((error, stackTrace) {
-          if (mounted) {
-            setState(() {
-              _isProgress = false;
-            });
-          }
-        }).whenComplete(() {
-          if (mounted) {
-            setState(() {
-              _isProgress = false;
-            });
-          }
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                getTranslated(context, 'OPEN_DWN_FILE_LBL')!,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Theme.of(context).colorScheme.black),
-              ),
-              action: SnackBarAction(
-                label: getTranslated(context, 'VIEW')!,
-                textColor: Theme.of(context).colorScheme.fontColor,
-                onPressed: () async {
-                  await OpenFilex.open(filePath!);
-                },
-              ),
-              backgroundColor: Theme.of(context).colorScheme.white,
-              elevation: 1.0,
-            ),
-          );
-          cancelOrder('delivered', updateOrderItemApi, orderItemId);
-        });
-        if (mounted) {
-          setState(() {
-            _isProgress = false;
-          });
-        }
-      }
-    } else {
-      setSnackbar('something wrong file is not available yet .', context);
-    }
-  }
+  // Remove this method
 
-  Future getDownloadLink(String orderItemId) async {
-    try {
-      if (mounted) {
-        setState(() {
-          _isProgress = true;
-        });
-      }
-      final parameter = {
-        'order_item_id': orderItemId,
-        USER_ID: context.read<UserProvider>().userId,
-      };
-      currentLinkForDownload = '';
-      apiBaseHelper.postAPICall(downloadLinkHashApi, parameter).then(
-          (getdata) async {
-        final bool error = getdata['error'];
-        if (!error) {
-          if (getdata['data'] != []) {
-            print("inner error false");
-            setState(() {
-              currentLinkForDownload = getdata['data'];
-            });
-            print("current link****$currentLinkForDownload");
-            downloadLinkFile(orderItemId);
-          }
-        } else {
-          setSnackbar(getdata['message'], context);
-        }
-        _isReturnClick = true;
-        if (mounted) {
-          setState(() {
-            _isProgress = false;
-          });
-        }
-      }, onError: (error) {
-        setSnackbar(error.toString(), context);
-      },);
-    } catch (e) {
-      setSnackbar(getTranslated(context, 'somethingMSg')!, context);
-    }
-  }
+
+  
 
   Future<void> sendBankProof() async {
     _isNetworkAvail = await isNetworkAvailable();
