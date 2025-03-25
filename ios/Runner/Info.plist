@@ -13,13 +13,13 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Qatrat Kheir</string>
+	<string>Qatrat Kheir| قطرة خير</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
-	<string>????</string>
+	<string>QATR</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
@@ -45,5 +45,25 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- Required Purpose Strings -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need access to your photo library to allow you to select images for your profile or to share content. This permission may also be required by third-party libraries used in the app.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We need access to your microphone to enable voice input features in the app. This permission may also be required by third-party libraries used in the app.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>We need access to your camera to allow you to take photos or videos within the app. This permission may also be required by third-party libraries used in the app.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>We need access to speech recognition to enable voice-to-text features in the app. This permission may also be required by third-party libraries used in the app.</string>
+	<!-- Optional Location Purpose Strings -->
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>We need access to your location to provide location-based services, such as finding nearby stores or services. This permission may also be required by third-party libraries used in the app.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We need access to your location to provide location-based services while you are using the app. This permission may also be required by third-party libraries used in the app.</string>
+	<!-- Push Notification Support -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>
