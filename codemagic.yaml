@@ -8,12 +8,12 @@ workflows:
       xcode: latest
       cocoapods: default
       groups:
-        - app_store_connect  # References the group containing your App Store Connect API key
+        - app_store_connect  # References the group containing the API key environment variables
     scripts:
       - name: Configure Code Signing
         script: |
           xcode-project use-profiles  # Uses your Apple Developer account credentials for automatic code signing
-      - name: Build IPA  # Corrected: Removed the trailing "workflows:" and fixed the name
+      - name: Build IPA
         script: |
           flutter build ipa --release --export-options-plist=/Users/builder/export_options.plist
       - name: Pre-publish Script
@@ -75,5 +75,7 @@ workflows:
       - build/ios/iphoneos/Runner.app  # Optional: Include if you need the .app file
     publishing:
       app_store_connect:
-        api_key: "Qatrat (Key: 244D7G556D)"  # Matches your Workflow Editor setup
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY  # References the private key stored in environment variables
+        key_id: "WKSYD9GZ7P"  # Key ID provided
+        issuer_id: "55c7bace-ef63-4e12-9101-466a78a81ad2"  # Issuer ID provided
         submit_to_app_store: true
