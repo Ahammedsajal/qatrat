@@ -13,7 +13,85 @@ workflows:
       - name: Configure Code Signing
         script: |
           xcode-project use-profiles
+      - name: Build IPAworkflows:
+  default-workflow:
+    name: Default Workflow
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      groups:
+        - app_store_connect  # References the group containing your App Store Connect API key
+    scripts:
+      - name: Configure Code Signing
+        script: |
+          xcode-project use-profiles  # Uses your Apple Developer account credentials for automatic code signing
       - name: Build IPA
+        script: |
+          flutter build ipa --release --export-options-plist=/Users/builder/export_options.plist
+      - name: Pre-publish Script
+        script: |
+          #!/bin/sh
+          set -e  # Exit on first error
+          set -x  # Print commands for debugging
+
+          # 1) Clean previous builds and install dependencies
+          flutter clean
+          flutter pub get
+          cd ios
+          pod install
+          cd ..
+
+          # 2) Build the iOS app (without code signing for CI)
+          flutter build ios --release --no-codesign
+
+          # 3) Verify that the Runner.app bundle exists
+          APP_BUNDLE=$(find build/ios/iphoneos -maxdepth 1 -type d -name "Runner.app")
+          if [ -z "$APP_BUNDLE" ]; then
+            echo "ERROR: Runner.app bundle not found in build/ios/iphoneos."
+            exit 1
+          fi
+          echo "✅ Found Runner.app at: $APP_BUNDLE"
+
+          # 4) Check for GoogleService-Info.plist in the final bundle
+          echo "🔎 Searching for GoogleService-Info.plist..."
+          PLIST_COUNT=$(find "$APP_BUNDLE" -name "GoogleService-Info.plist" | wc -l | tr -d ' ')
+          if [ "$PLIST_COUNT" -lt 1 ]; then
+            echo "❌ GoogleService-Info.plist not found in the final app bundle."
+            echo "Attempting to manually copy GoogleService-Info.plist from ios/Runner into the bundle..."
+            
+            # Debug: verify the file exists in the source path
+            if [ ! -f "ios/Runner/GoogleService-Info.plist" ]; then
+              echo "ERROR: Source file ios/Runner/GoogleService-Info.plist not found."
+              exit 1
+            fi
+            ls -la ios/Runner/GoogleService-Info.plist
+            
+            # Attempt the copy
+            cp ios/Runner/GoogleService-Info.plist "$APP_BUNDLE/"
+            
+            echo "Verifying the copy..."
+            PLIST_COUNT=$(find "$APP_BUNDLE" -name "GoogleService-Info.plist" | wc -l | tr -d ' ')
+            if [ "$PLIST_COUNT" -lt 1 ]; then
+              echo "❌ Failed to copy GoogleService-Info.plist into the app bundle."
+              exit 1
+            else
+              echo "✅ Successfully copied GoogleService-Info.plist into the app bundle."
+            fi
+          else
+            echo "✅ GoogleService-Info.plist is present in the final app bundle."
+          fi
+
+          echo "🎉 Build verification complete! Your app should now have the necessary Firebase config."
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - build/ios/iphoneos/Runner.app  # Optional: Include if you need the .app file
+    publishing:
+      app_store_connect:
+        api_key: "Qatrat (Key: 244D7G556D)"  # Corrected: Enclosed in quotes to handle special characters
+        submit_to_app_store: true
         script: |
           flutter build ipa --release --export-options-plist=/Users/builder/export_options.plist
       - name: Pre-publish Script
