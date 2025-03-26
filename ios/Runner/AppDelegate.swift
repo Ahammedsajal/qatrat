@@ -9,19 +9,11 @@ import GoogleSignIn
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    // Initialize Firebase with error handling
-    do {
-      try FirebaseApp.configure()
-      print("Firebase configured successfully")
-    } catch {
-      print("Failed to configure Firebase: \(error.localizedDescription)")
-      // Optionally, you can decide whether to proceed or terminate the app
-      // For now, we'll proceed to avoid crashing
-    }
+    // Initialize Firebase (ensure that GoogleService-Info.plist is in your bundle)
+    FirebaseApp.configure()
+    print("Firebase configured successfully")
     
-    // Register Flutter plugins
     GeneratedPluginRegistrant.register(with: self)
-    
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
@@ -30,7 +22,6 @@ import GoogleSignIn
     open url: URL,
     options: [UIApplication.OpenURLOptionsKey: Any] = [:]
   ) -> Bool {
-    // Handle Google Sign-In redirect URL
     return GIDSignIn.sharedInstance.handle(url)
   }
 }
