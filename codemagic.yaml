@@ -9,10 +9,21 @@ workflows:
       cocoapods: default
       groups:
         - app_store_connect  # References the group containing the API key environment variables
+      vars:
+        XCODE_DEVELOPMENT_TEAM: "9A59WNP3LR"  # Your Apple Developer Team ID
     scripts:
       - name: Configure Code Signing
         script: |
           xcode-project use-profiles  # Uses your Apple Developer account credentials for automatic code signing
+      - name: Verify GoogleService-Info.plist
+        script: |
+          #!/bin/sh
+          set -e
+          if [ ! -f "ios/Runner/GoogleService-Info.plist" ]; then
+            echo "ERROR: GoogleService-Info.plist not found in ios/Runner."
+            exit 1
+          fi
+          echo "✅ GoogleService-Info.plist found in ios/Runner."
       - name: Build IPA
         script: |
           flutter build ipa --release --export-options-plist=/Users/builder/export_options.plist
