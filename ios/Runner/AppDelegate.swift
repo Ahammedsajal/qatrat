@@ -9,8 +9,15 @@ import GoogleSignIn
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    // Initialize Firebase
-    FirebaseApp.configure()
+    // Initialize Firebase with error handling
+    do {
+      try FirebaseApp.configure()
+      print("Firebase configured successfully")
+    } catch {
+      print("Failed to configure Firebase: \(error.localizedDescription)")
+      // Optionally, you can decide whether to proceed or terminate the app
+      // For now, we'll proceed to avoid crashing
+    }
     
     // Register Flutter plugins
     GeneratedPluginRegistrant.register(with: self)
