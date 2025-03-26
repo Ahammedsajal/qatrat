@@ -34,8 +34,10 @@ target 'Runner' do
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 
   # Explicitly add Firebase and GoogleSignIn pods
-  pod 'Firebase/Core'
-  pod 'Firebase/Auth'
+  pod 'Firebase/Core', '10.29.0'
+  pod 'Firebase/Auth', '10.29.0'
+  pod 'Firebase/Messaging', '10.29.0'
+  pod 'Firebase/DynamicLinks', '10.29.0'
   pod 'GoogleSignIn', '~> 7.1' # Use the latest version (7.1 as of March 2025)
 end
 
