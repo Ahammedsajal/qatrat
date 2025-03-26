@@ -15,13 +15,6 @@ import GoogleSignIn
     // Register Flutter plugins
     GeneratedPluginRegistrant.register(with: self)
     
-    // Set the presenting view controller for Google Sign-In
-    if let controller = window?.rootViewController as? FlutterViewController {
-      GIDSignIn.sharedInstance.presentingViewController = controller
-    } else {
-      print("Error: Could not set presenting view controller for Google Sign-In")
-    }
-    
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
