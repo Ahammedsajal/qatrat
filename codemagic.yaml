@@ -12,9 +12,20 @@ workflows:
       vars:
         XCODE_DEVELOPMENT_TEAM: "9A59WNP3LR"  # Your Apple Developer Team ID
     scripts:
+      - name: Debug Code Signing Setup
+        script: |
+          #!/bin/sh
+          set -e
+          echo "Debug: Checking XCODE_DEVELOPMENT_TEAM..."
+          echo "XCODE_DEVELOPMENT_TEAM: $XCODE_DEVELOPMENT_TEAM"
+          if [ -z "$XCODE_DEVELOPMENT_TEAM" ]; then
+            echo "ERROR: XCODE_DEVELOPMENT_TEAM is not set."
+            exit 1
+          fi
+          echo "✅ XCODE_DEVELOPMENT_TEAM is set to $XCODE_DEVELOPMENT_TEAM"
       - name: Configure Code Signing
         script: |
-          xcode-project use-profiles  # Uses your Apple Developer account credentials for automatic code signing
+          xcode-project use-profiles
       - name: Verify GoogleService-Info.plist
         script: |
           #!/bin/sh
@@ -26,7 +37,7 @@ workflows:
           echo "✅ GoogleService-Info.plist found in ios/Runner."
       - name: Build IPA
         script: |
-          flutter build ipa --release --export-options-plist=/Users/builder/export_options.plist
+          flutter build ipa --release --export-method app-store --team-id $XCODE_DEVELOPMENT_TEAM
       - name: Pre-publish Script
         script: |
           #!/bin/sh
