@@ -49,15 +49,15 @@ class DefaultFirebaseOptions {
     storageBucket: 'customer-app-cad10.firebasestorage.app',
   );
 
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAL5fpg6ptmwGRWlGTC9kI6_dqxuKqChZc',
-    appId: '1:388298698922:ios:f192c13b1a0e203bb0a0d3',
-    messagingSenderId: '388298698922',
-    projectId: 'customer-app-cad10',
-    storageBucket: 'customer-app-cad10.appspot.com',
-    iosClientId: '388298698922-6nrkjtfh0u9b3dgqvep9k70q1ncennak.apps.googleusercontent.com', // Optional
-    iosBundleId: 'com.wrteam.customer', // Replace with your iOS bundle ID
-  );
+ static const FirebaseOptions ios = FirebaseOptions(
+  apiKey: 'AIzaSyAL5fpg6ptmwGRWlGTC9kI6_dqxuKqChZc',
+  appId: '1:388298698922:ios:f192c13b1a0e203bb0a0d3',
+  messagingSenderId: '388298698922',
+  projectId: 'customer-app-cad10',
+  storageBucket: 'customer-app-cad10.firebasestorage.app', // Updated for consistency
+  iosClientId: '388298698922-gftnl5f973cm8jufpkaqgu0p3dkamvno.apps.googleusercontent.com', // Updated to match the provided client ID
+  iosBundleId: 'com.customersingle.customer', // Updated to match the actual bundle ID
+);
 
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'AIzaSyDxsDoI-paaicCbxq3MaNA13HhX1J3Y5uI',
