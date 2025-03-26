@@ -49,14 +49,14 @@ class DefaultFirebaseOptions {
     storageBucket: 'customer-app-cad10.firebasestorage.app',
   );
 
- static const FirebaseOptions ios = FirebaseOptions(
-  apiKey: 'AIzaSyAL5fpg6ptmwGRWlGTC9kI6_dqxuKqChZc',
-  appId: '1:388298698922:ios:f192c13b1a0e203bb0a0d3',
+static const FirebaseOptions ios = FirebaseOptions(
+  apiKey: 'AIzaSyBZzPF-TUQHk4lUxNOLRMZxfHctui28w_Q', // Updated to match GoogleService-Info.plist
+  appId: '1:388298698922:ios:d3bf8338ed31a9e3b0a0d3', // Updated to match GoogleService-Info.plist
   messagingSenderId: '388298698922',
   projectId: 'customer-app-cad10',
-  storageBucket: 'customer-app-cad10.firebasestorage.app', // Updated for consistency
-  iosClientId: '388298698922-gftnl5f973cm8jufpkaqgu0p3dkamvno.apps.googleusercontent.com', // Updated to match the provided client ID
-  iosBundleId: 'com.customersingle.customer', // Updated to match the actual bundle ID
+  storageBucket: 'customer-app-cad10.firebasestorage.app',
+  iosClientId: '388298698922-gftnl5f973cm8jufpkaqgu0p3dkamvno.apps.googleusercontent.com',
+  iosBundleId: 'com.customersingle.customer',
 );
 
   static const FirebaseOptions windows = FirebaseOptions(
