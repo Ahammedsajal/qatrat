@@ -30,11 +30,24 @@ target 'Runner' do
   use_frameworks!
   use_modular_headers!
 
+  # Install all Flutter plugin pods
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+
+  # Explicitly add Firebase and GoogleSignIn pods
+  pod 'Firebase/Core'
+  pod 'Firebase/Auth'
+  pod 'GoogleSignIn', '~> 7.1' # Use the latest version (7.1 as of March 2025)
 end
 
 post_install do |installer|
   installer.pods_project.targets.each do |target|
+    # Apply Flutter-specific build settings
     flutter_additional_ios_build_settings(target)
+
+    # Ensure compatibility with iOS 14.0 and disable bitcode
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+      config.build_settings['ENABLE_BITCODE'] = 'NO' # Bitcode is deprecated
+    end
   end
 end
