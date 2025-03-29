@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <!-- Added CFBundleURLTypes for Google Sign-In and Firebase Dynamic Links -->
+    <!-- Added CFBundleURLTypes for Google Sign-In, Firebase Dynamic Links, and Apple Sign In -->
     <key>CFBundleURLTypes</key>
     <array>
         <!-- Google Sign-In URL Scheme -->
@@ -14,16 +14,29 @@
                 <string>com.googleusercontent.apps.388298698922-gftnl5f973cm8jufpkaqgu0p3dkamvno</string>
             </array>
         </dict>
-        <!-- Firebase Dynamic Links URL Scheme (optional, replace 'your-custom-scheme' if applicable) -->
+
+        <!-- Firebase Dynamic Links URL Scheme (optional) -->
         <dict>
             <key>CFBundleTypeRole</key>
             <string>Editor</string>
             <key>CFBundleURLSchemes</key>
             <array>
-                <string>your-custom-scheme</string> <!-- Replace with your Firebase Dynamic Links scheme, e.g., 'qatratkheir' -->
+                <string>your-custom-scheme</string> <!-- Replace with your Firebase Dynamic Links scheme, e.g. 'qatratkheir' -->
+            </array>
+        </dict>
+        
+        <!-- Apple Sign In URL Scheme -->
+        <dict>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <!-- Replace with the reversed client ID or bundle ID used for Apple Sign In -->
+                <string>com.customersingle.customer</string>
             </array>
         </dict>
     </array>
+
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
@@ -50,6 +63,7 @@
     <string>LaunchScreen</string>
     <key>UIMainStoryboardFile</key>
     <string>Main</string>
+
     <key>UISupportedInterfaceOrientations</key>
     <array>
         <string>UIInterfaceOrientationPortrait</string>
@@ -67,6 +81,7 @@
     <true/>
     <key>UIApplicationSupportsIndirectInputEvents</key>
     <true/>
+
     <!-- Required Purpose Strings -->
     <key>NSPhotoLibraryUsageDescription</key>
     <string>We need access to your photo library to allow you to select images for your profile or to share content. This permission may also be required by third-party libraries used in the app.</string>
@@ -76,16 +91,19 @@
     <string>We need access to your camera to allow you to take photos or videos within the app. This permission may also be required by third-party libraries used in the app.</string>
     <key>NSSpeechRecognitionUsageDescription</key>
     <string>We need access to speech recognition to enable voice-to-text features in the app. This permission may also be required by third-party libraries used in the app.</string>
+
     <!-- Updated Location Purpose Strings -->
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
     <string>We need access to your location to deliver essentials to the nearest mosque or to the most needed mosque in Qatar based on your location.</string>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>We need access to your location to provide location-based services and deliver essentials to a mosque near you in Qatar.</string>
+
     <!-- Push Notification Support -->
     <key>UIBackgroundModes</key>
     <array>
         <string>fetch</string>
         <string>remote-notification</string>
     </array>
+
 </dict>
 </plist>
