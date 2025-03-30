@@ -1273,6 +1273,7 @@ Widget build(BuildContext context) {
       final oauthCredential = OAuthProvider("apple.com").credential(
         idToken: appleCredential.identityToken,
         rawNonce: rawNonce,
+        accessToken: appleCredential.authorizationCode,
       );
       final UserCredential authResult =
           await FirebaseAuth.instance.signInWithCredential(oauthCredential);
