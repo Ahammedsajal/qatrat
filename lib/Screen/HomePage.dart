@@ -550,119 +550,119 @@ Widget _slider() {
   }
 
   Widget _catList() {
-    return Selector<HomeProvider, bool>(
-      selector: (_, homeProvider) => homeProvider.catLoading,
-      builder: (context, isLoading, child) {
-        if (isLoading) {
-          // Shimmer effect for loading state using two button-like placeholders
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: List.generate(
-                2,
-                (index) => Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Shimmer.fromColors(
-                      baseColor: Theme.of(context).colorScheme.simmerBase,
-                      highlightColor: Theme.of(context).colorScheme.simmerHigh,
-                      child: Container(
-                        height: 60,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [
-                              Color(0xFF26897e),
-                              Color(0xFF1ebaaa),
-                              Color(0xFF247b88),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          );
-        }
-
-        // Two button-like UI elements using API data from catList.
+  return Selector<HomeProvider, bool>(
+    selector: (_, homeProvider) => homeProvider.catLoading,
+    builder: (context, isLoading, child) {
+      if (isLoading) {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            children: List.generate(
-              catList.length,
-              (index) => Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: InkWell(
-                    onTap: () async {
-                      await Navigator.pushNamed(
-                        context,
-                        Routers.productListScreen,
-                        arguments: {
-                          "name": catList[index].name,
-                          "id": catList[index].id,
-                          "tag": false,
-                          "fromSeller": false,
-                        },
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      height: 60,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [
-                            Color(0xFF26897e),
-                            Color(0xFF1ebaaa),
-                            Color(0xFF247b88),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          if (catList[index].image != null) ...[
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(30),
-                              child: networkImageCommon(
-                                catList[index].image!,
-                                30,
-                                width: 30,
-                                height: 30,
-                                false,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                          ],
-                          Text(
-  getTranslated(context, catList[index].name!) ?? capitalize(catList[index].name!.toLowerCase()),
-                            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                          ),
-                        ],
-                      ),
+          child: SizedBox(
+            height: 70,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: 5,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (context, index) => Shimmer.fromColors(
+                baseColor: Theme.of(context).colorScheme.simmerBase,
+                highlightColor: Theme.of(context).colorScheme.simmerHigh,
+                child: Container(
+                  width: 120,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color(0xFF26897e),
+                        Color(0xFF1ebaaa),
+                        Color(0xFF247b88),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
               ),
             ),
           ),
         );
-      },
-    );
-  }
+      }
+
+      return SizedBox(
+        height: 70,
+        child: ListView.separated(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          scrollDirection: Axis.horizontal,
+          itemCount: catList.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 12),
+          itemBuilder: (context, index) {
+            final cat = catList[index];
+            return InkWell(
+              onTap: () async {
+                await Navigator.pushNamed(
+                  context,
+                  Routers.productListScreen,
+                  arguments: {
+                    "name": cat.name,
+                    "id": cat.id,
+                    "tag": false,
+                    "fromSeller": false,
+                  },
+                );
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                width: 130,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFF26897e),
+                      Color(0xFF1ebaaa),
+                      Color(0xFF247b88),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    if (cat.image != null)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(30),
+                        child: networkImageCommon(
+                          cat.image!,
+                          30,
+                          width: 30,
+                          height: 30,
+                          false,
+                        ),
+                      ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        getTranslated(context, cat.name!) ??
+                            capitalize(cat.name!.toLowerCase()),
+                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      );
+    },
+  );
+}
+
 
 
 
