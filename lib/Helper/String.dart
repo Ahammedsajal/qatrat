@@ -103,6 +103,8 @@ const String NAME = 'name';
 const String SUBTITLE = 'subtitle';
 const String TAX = 'tax';
 const String SLUG = 'slug';
+// In String.dart
+const String TRANS_ID = 'transaction_id'; // Adjust to match your backend's expected key
 const String TITLE = 'title';
 const String PRODUCT_DETAIL = 'product_details';
 const String DESC = 'description';
@@ -218,6 +220,8 @@ const String DELIVERY_TIME = 'delivery_time';
 const String DELIVERY_DATE = 'delivery_date';
 const String QUANTITY = "quantity";
 const String PROMO_DIS = 'promo_discount';
+const String PRIVACY_POLICY = 'privacy_policy';
+
 const String WAL_BAL = 'wallet_balance';
 const String TOTAL = 'total';
 const String TOTAL_PAYABLE = 'total_payable';

@@ -2,10 +2,17 @@
   import 'dart:convert';
   import 'dart:io';
   import 'package:collection/src/iterable_extensions.dart';
+  import 'package:webview_flutter/webview_flutter.dart';
+import 'dart:convert';
+  // At the top of Cart.dart
+import 'package:customer/Screen/Payment.dart' hide isTimeSlot;
+import 'package:customer/Screen/SkipCashWebView.dart';
+import 'package:logging/logging.dart';
   import 'package:crypto/crypto.dart';
   import 'package:customer/Helper/Session.dart';
   import 'package:customer/Helper/SqliteData.dart';
   import 'package:customer/Helper/cart_var.dart';
+  import '../../Helper/AuthUtils.dart';
   import 'package:customer/Provider/CartProvider.dart';
   import 'package:customer/Provider/SettingProvider.dart';
   import 'package:customer/Provider/UserProvider.dart';
@@ -20,6 +27,7 @@
   import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
   import 'package:http/http.dart' as http;
   import 'package:http_parser/http_parser.dart';
+  import '../Order_Success.dart';
   import 'package:mime/mime.dart';
   import 'package:my_fatoorah/my_fatoorah.dart';
   import 'package:paytm_allinonesdk/paytm_allinonesdk.dart';
@@ -43,9 +51,8 @@ import 'package:customer/Helper/String.dart' hide currencySymbol;
   import '../../ui/widgets/Stripe_Service.dart';
   import '../Add_Address.dart';
   import '../HomePage.dart';
-  import '../Payment.dart';
   import 'package:flutter_bloc/flutter_bloc.dart';
-
+import '../../utils/Hive/hive_utils.dart';
   import '../PaypalWebviewActivity.dart';
   import '../instamojo_webview.dart';
   import '../qatar_mosques.dart';
@@ -69,9 +76,11 @@ import 'package:customer/Helper/String.dart' hide currencySymbol;
       required String orderID,
     }) async {
       final parameter = {ORDER_ID: orderID, STATUS: status};
+      final Logger _log = Logger('Cart.dart');
       final result = await ApiBaseHelper().postAPICall(updateOrderApi, parameter);
       return {'error': result['error'], 'message': result['message']};
     }
+    
     List<Model> deliverableList = [];
     bool _isCartLoad = true;
     
@@ -88,6 +97,7 @@ import 'package:customer/Helper/String.dart' hide currencySymbol;
         GlobalKey<RefreshIndicatorState>();
     String? msg;
     bool _isLoading = true;
+    final Logger _log = Logger('Cart.dart');
     TextEditingController noteC = TextEditingController();
     StateSetter? checkoutState;
     bool deliverable = true;
@@ -120,10 +130,12 @@ import 'package:customer/Helper/String.dart' hide currencySymbol;
     void initState() {
       super.initState();
       prescriptionImages.clear();
+      
       callApi();
       if (context.read<UserProvider>().email != '') {
         emailController.text = context.read<UserProvider>().email;
       }
+      
      // Initialize mobile controller with the current mobile number
     if (context.read<UserProvider>().mobile != null) {
       mobileController.text = context.read<UserProvider>().mobile!;
@@ -144,6 +156,7 @@ import 'package:customer/Helper/String.dart' hide currencySymbol;
           ),
         ),
       );
+      
     }
 
     callApi() async {
@@ -3923,170 +3936,116 @@ buildConvertedPrice(
                                                   title: getTranslated(
                                                     context,
                                                     'PLACE_ORDER',
-                                                  ),
-                                                  onBtnSelected: () {
-                                                    print(
-                                                      "deliverable*****$deliverable",
-                                                    );
-                                                    checkoutState?.call(() {
-                                                      _placeOrder = false;
-                                                    });
-                                                    
-                                                      if (paymentMethod ==
-                                                            null ||
-                                                        paymentMethod!.isEmpty) {
-                                                      msg = getTranslated(
-                                                        context,
-                                                        'payWarning',
-                                                      );
-                                                      Navigator.pushNamed(
-                                                        context,
-                                                        Routers.paymentScreen,
-                                                        arguments: {
-                                                          "update":
-                                                              updateCheckout,
-                                                          "msg": msg,
-                                                        },
-                                                      ).then((value) async {
-                                                        if (cartList[0]
-                                                                    .productList![
-                                                                        0]
-                                                                    .productType !=
-                                                                'digital_product' &&
-                                                            isStorePickUp ==
-                                                                "false" &&
-                                                            !deliverable) {
-                                                          await checkDeliverable(
-                                                            2,
-                                                            showErrorMessage:
-                                                                false,
-                                                          );
-                                                        }
-                                                        checkoutState?.call(() {
-                                                          _placeOrder = true;
-                                                        });
-                                                      });
-                                                    } else if (cartList[0]
-                                                                .productList![0]
-                                                                .productType !=
-                                                            'digital_product' &&
-                                                        isTimeSlot! &&
-                                                        (isLocalDelCharge ==
-                                                                null ||
-                                                            isLocalDelCharge!) &&
-                                                        int.parse(allowDay!) >
-                                                            0 &&
-                                                        (selDate == null ||
-                                                            selDate!.isEmpty) &&
-                                                        IS_LOCAL_ON != '0') {
-                                                      msg = getTranslated(
-                                                        context,
-                                                        'dateWarning',
-                                                      );
-                                                      Navigator.pushNamed(
-                                                        context,
-                                                        Routers.paymentScreen,
-                                                        arguments: {
-                                                          "update":
-                                                              updateCheckout,
-                                                          "msg": msg,
-                                                        },
-                                                      ).then((value) async {
-                                                        if (cartList[0]
-                                                                    .productList![
-                                                                        0]
-                                                                    .productType !=
-                                                                'digital_product' &&
-                                                            isStorePickUp ==
-                                                                "false" &&
-                                                            !deliverable) {
-                                                          await checkDeliverable(
-                                                            2,
-                                                            showErrorMessage:
-                                                                false,
-                                                          );
-                                                        }
-                                                        checkoutState?.call(() {
-                                                          _placeOrder = true;
-                                                        });
-                                                      });
-                                                    } else if (cartList[0]
-                                                                .productList![0]
-                                                                .productType !=
-                                                            'digital_product' &&
-                                                        isTimeSlot! &&
-                                                        (isLocalDelCharge ==
-                                                                null ||
-                                                            isLocalDelCharge!) &&
-                                                        timeSlotList.isNotEmpty &&
-                                                        (selTime == null ||
-                                                            selTime!.isEmpty) &&
-                                                        IS_LOCAL_ON != '0') {
-                                                      msg = getTranslated(
-                                                        context,
-                                                        'timeWarning',
-                                                      );
-                                                      Navigator.pushNamed(
-                                                        context,
-                                                        Routers.paymentScreen,
-                                                        arguments: {
-                                                          "update":
-                                                              updateCheckout,
-                                                          "msg": msg,
-                                                        },
-                                                      ).then((value) async {
-                                                        if (cartList[0]
-                                                                    .productList![
-                                                                        0]
-                                                                    .productType !=
-                                                                'digital_product' &&
-                                                            isStorePickUp ==
-                                                                "false" &&
-                                                            !deliverable) {
-                                                          await checkDeliverable(
-                                                            2,
-                                                            showErrorMessage:
-                                                                false,
-                                                          );
-                                                        }
-                                                        checkoutState?.call(() {
-                                                          _placeOrder = true;
-                                                        });
-                                                      });
-                                                    } else if (double.parse(
-                                                          MIN_ALLOW_CART_AMT!,
-                                                        ) >
-                                                        originalPrice) {
-                                                      setSnackbar(
-                                                        getTranslated(
-                                                          context,
-                                                          'MIN_CART_AMT',
-                                                        )!,
-                                                        context,
-                                                      );
-                                                    } else if (cartList[0]
-                                                                .productList![0]
-                                                                .productType !=
-                                                            'digital_product' &&
-                                                        isStorePickUp == "false" &&
-                                                        !deliverable) {
-                                                      checkDeliverable(1);
-                                                    } else {
-                                                      if (confDia) {
-                                                        if (!context
-                                                            .read<CartProvider>()
-                                                            .isProgress) {
-                                                          confirmDialog(
-                                                            cartList,
-                                                          );
-                                                          setState(() {
-                                                            confDia = false;
-                                                          });
-                                                        }
-                                                      }
-                                                    }
-                                                  },
-                                                ),
+                                                  ),onBtnSelected: () async {
+  // Reset the place order flag
+  checkoutState?.call(() {
+    _placeOrder = false;
+  });
+
+  // Validate payment method selection
+  if (paymentMethod == null || paymentMethod!.isEmpty) {
+    msg = getTranslated(context, 'payWarning');
+    Navigator.pushNamed(
+      context,
+      Routers.paymentScreen,
+      arguments: {
+        "update": updateCheckout,
+        "msg": msg,
+      },
+    ).then((value) async {
+      if (cartList[0].productList![0].productType != 'digital_product' &&
+          isStorePickUp == "false" &&
+          !deliverable) {
+        await checkDeliverable(2, showErrorMessage: false);
+      }
+      checkoutState?.call(() {
+        _placeOrder = true;
+      });
+    });
+    return;
+  }
+
+  // Validate delivery date selection
+  if (cartList[0].productList![0].productType != 'digital_product' &&
+      isTimeSlot! &&
+      (isLocalDelCharge == null || isLocalDelCharge!) &&
+      int.parse(allowDay!) > 0 &&
+      (selDate == null || selDate!.isEmpty) &&
+      IS_LOCAL_ON != '0') {
+    msg = getTranslated(context, 'dateWarning');
+    Navigator.pushNamed(
+      context,
+      Routers.paymentScreen,
+      arguments: {
+        "update": updateCheckout,
+        "msg": msg,
+      },
+    ).then((value) async {
+      if (cartList[0].productList![0].productType != 'digital_product' &&
+          isStorePickUp == "false" &&
+          !deliverable) {
+        await checkDeliverable(2, showErrorMessage: false);
+      }
+      checkoutState?.call(() {
+        _placeOrder = true;
+      });
+    });
+    return;
+  }
+
+  // Validate delivery time selection
+  if (cartList[0].productList![0].productType != 'digital_product' &&
+      isTimeSlot! &&
+      (isLocalDelCharge == null || isLocalDelCharge!) &&
+      timeSlotList.isNotEmpty &&
+      (selTime == null || selTime!.isEmpty) &&
+      IS_LOCAL_ON != '0') {
+    msg = getTranslated(context, 'timeWarning');
+    Navigator.pushNamed(
+      context,
+      Routers.paymentScreen,
+      arguments: {
+        "update": updateCheckout,
+        "msg": msg,
+      },
+    ).then((value) async {
+      if (cartList[0].productList![0].productType != 'digital_product' &&
+          isStorePickUp == "false" &&
+          !deliverable) {
+        await checkDeliverable(2, showErrorMessage: false);
+      }
+      checkoutState?.call(() {
+        _placeOrder = true;
+      });
+    });
+    return;
+  }
+
+  // Validate minimum cart amount
+  if (double.parse(MIN_ALLOW_CART_AMT!) > originalPrice) {
+    setSnackbar(getTranslated(context, 'MIN_CART_AMT')!, context);
+    return;
+  }
+
+  // Validate deliverability
+  if (cartList[0].productList![0].productType != 'digital_product' &&
+      isStorePickUp == "false" &&
+      !deliverable) {
+    checkDeliverable(1);
+    return;
+  }
+
+  // Proceed with order confirmation
+  if (confDia) {
+    if (!context.read<CartProvider>().isProgress) {
+      confirmDialog(cartList);
+      setState(() {
+        confDia = false;
+      });
+    }
+  }
+}
+),
                                               ),
                                           ],
                                         ),
@@ -4254,265 +4213,329 @@ Widget buildTotalPriceWidget(BuildContext context) {
       return digest.toString();
     }
 
-    Future<void> placeOrder(String? tranId) async {
-      _isNetworkAvailable = await isNetworkAvailable();
-      if (_isNetworkAvailable) {
-        context.read<CartProvider>().setProgress(true);
-        final SettingProvider settingsProvider =
-            Provider.of<SettingProvider>(context, listen: false);
-        final String mob = settingsProvider.mobile;
-        String? varientId;
-        String? quantity;
-        final List<SectionModel> cartList = context.read<CartProvider>().cartList;
-        for (final SectionModel sec in cartList) {
-          varientId =
-              varientId != null ? "$varientId,${sec.varientId!}" : sec.varientId;
-          quantity = quantity != null ? "$quantity,${sec.qty!}" : sec.qty;
-        }
-        String? payVia;
-        if (paymentMethod == getTranslated(context, 'COD_LBL')) {
-          payVia = "COD";
-        } else if (paymentMethod == getTranslated(context, 'PAYPAL_LBL')) {
-          payVia = "PayPal";
-        }  else if (paymentMethod == getTranslated(context, 'STRIPE_LBL')) {
-          payVia = "Stripe";
-        } else if (paymentMethod == "Wallet") {
-          payVia = "Wallet";
-        } else if (paymentMethod == getTranslated(context, 'BANKTRAN')) {
-          payVia = "bank_transfer";
-        } else if (paymentMethod == getTranslated(context, 'MY_FATOORAH_LBL')) {
-          payVia = 'my fatoorah';
-        }
-        final request = http.MultipartRequest("POST", placeOrderApi);
-        request.fields[MOBILE] = mobileController.text;
-        request.headers.addAll(headers);
-        try {
-          request.fields[USER_ID] = context.read<UserProvider>().userId;
-          request.fields[MOBILE] = mob;
-          request.fields[PRODUCT_VARIENT_ID] = varientId!;
-          request.fields[QUANTITY] = quantity!;
-          request.fields[TOTAL] = originalPrice.toString();
-          request.fields[FINAL_TOTAL] = usedBalance > 0
-              ? totalPrice.toString()
-              : isStorePickUp == "false"
-                  ? (totalPrice + deliveryCharge).toString()
-                  : totalPrice.toString();
-          request.fields[TAX_PER] = taxPersontage.toString();
-          request.fields[PAYMENT_METHOD] = payVia!;
-          request.fields[ISWALLETBALUSED] = isUseWallet! ? "1" : "0";
-          request.fields[WALLET_BAL_USED] = usedBalance.toString();
-          request.fields[ORDER_NOTE] = noteC.text;
-          if (IS_LOCAL_PICKUP != "1" || isStorePickUp != "true") {
-            request.fields[DEL_CHARGE] = deliveryCharge.toString();
-          }
-final selectedMosque = context.read<MosqueProvider>().selectedMosque;
 
-          if (selectedMosque != null) {
-        request.fields[ADD_ID] = selectedMosque!.id; // or a composite address string if needed
-      } else {
-        // Use a default value – you can hard-code this or pull it from a configuration.
-        request.fields[ADD_ID] = "999";
-      }
-        
-          if (IS_LOCAL_PICKUP == "1") {
-            request.fields[LOCAL_PICKUP] = isStorePickUp == "true" ? "1" : "0";
-          }
-          if (paymentMethod == getTranslated(context, 'COD_LBL')) {
-            request.fields[ACTIVE_STATUS] = PLACED;
-          } else {
-            if (paymentMethod == getTranslated(context, 'PHONEPE_LBL')) {
-              request.fields[ACTIVE_STATUS] = 'draft';
-            } else {
-              request.fields[ACTIVE_STATUS] = WAITING;
-            }
-          }
-          print("request field***${request.fields}");
-          if (prescriptionImages.isNotEmpty) {
-            for (var i = 0; i < prescriptionImages.length; i++) {
-              final mimeType = lookupMimeType(prescriptionImages[i].path);
-              final extension = mimeType!.split("/");
-              final pic = await http.MultipartFile.fromPath(
-                DOCUMENT,
-                prescriptionImages[i].path,
-                contentType: MediaType('image', extension[1]),
-              );
-              request.files.add(pic);
-            }
-          }
-          final response = await request.send();
-          final responseData = await response.stream.toBytes();
-          final responseString = String.fromCharCodes(responseData);
-          _placeOrder = true;
-          print("response status code ***${response.statusCode}");
-          print("response body: $responseString");
-          if (response.statusCode == 200) {
-            final getdata = json.decode(responseString);
-            print("getdata cart****$getdata");
-            final bool error = getdata["error"];
-            final String? msg = getdata["message"];
-           if (!error) {
-  // Access balance from inside the data object
+Future<void> placeOrder(String? tranId) async {
+  // Check network connectivity.
+  _isNetworkAvailable = await isNetworkAvailable();
+  if (!_isNetworkAvailable) {
+    if (mounted) {
+      checkoutState?.call(() {
+        _isNetworkAvailable = false;
+      });
+    }
+    return;
+  }
+
+  final cartProvider = context.read<CartProvider>();
+  final userProvider = context.read<UserProvider>();
+  cartProvider.setProgress(true);
+
+  // Calculate cart string values.
+  String? varientId;
+  String? quantity;
+  final List<SectionModel> cartList = cartProvider.cartList;
+  for (final SectionModel sec in cartList) {
+    varientId = varientId != null ? "$varientId,${sec.varientId!}" : sec.varientId;
+    quantity = quantity != null ? "$quantity,${sec.qty!}" : sec.qty;
+  }
+
+  // Determine payment method string.
+  String? payVia;
+  if (paymentMethod == getTranslated(context, 'COD_LBL')) {
+    payVia = "COD";
+  } else if (paymentMethod == getTranslated(context, 'STRIPE_LBL')) {
+    payVia = "Stripe";
+  } else if (paymentMethod == "Wallet") {
+    payVia = "Wallet";
+  } else if (paymentMethod == getTranslated(context, 'BANKTRAN')) {
+    payVia = "bank_transfer";
+  } else if (paymentMethod == getTranslated(context, 'MY_FATOORAH_LBL')) {
+    payVia = "my fatoorah";
+  }
+
+  // ───────────────────────────────
+  // SKIPCASH integration branch
+  // If SkipCash is selected, call the dedicated initiateSkipCashPayment function,
+  // which will handle the SkipCash payment flow (opening the webview, callbacks, etc.).
+  if (paymentMethod == getTranslated(context, 'SKIPCASH_LBL')) {
+    // Calculate final amount.
+    double finalAmount = usedBalance > 0
+        ? totalPrice
+        : isStorePickUp == "false"
+            ? (totalPrice + deliveryCharge)
+            : totalPrice;
+    // Generate an order ID placeholder. Replace with an actual generated order ID if available.
+    final String orderIdForPayment = '';
+    await initiateSkipCashPayment(
+      context,
+      orderIdForPayment,
+      finalAmount,
+      totalPrice: totalPrice,
+      deliveryCharge: deliveryCharge,
+      usedBalance: usedBalance,
+      isStorePickUp: isStorePickUp,
+      selDate: selDate,
+      selTime: selTime,
+      baseUrl: baseUrl,
+      placeOrder: placeOrder, // Pass this callback to be called upon completion.
+    );
+    return; // Stop further order placement until SkipCash payment completes.
+  }
+  // ───────────────────────────────
+  // END SkipCash Branch
+
+  // Normal order placement for other payment methods
+  final request = http.MultipartRequest("POST", placeOrderApi);
+  request.headers.addAll(headers);
+  request.fields[MOBILE] = mobileController.text;
+  request.fields[USER_ID] = userProvider.userId;
+  request.fields[PRODUCT_VARIENT_ID] = varientId!;
+  request.fields[QUANTITY] = quantity!;
+  request.fields[TOTAL] = originalPrice.toString();
+  request.fields[FINAL_TOTAL] = usedBalance > 0
+      ? totalPrice.toString()
+      : isStorePickUp == "false"
+          ? (totalPrice + deliveryCharge).toString()
+          : totalPrice.toString();
+  request.fields[TAX_PER] = taxPersontage.toString();
+  request.fields[PAYMENT_METHOD] = payVia!;
+  request.fields[ISWALLETBALUSED] = isUseWallet! ? "1" : "0";
+  request.fields[WALLET_BAL_USED] = usedBalance.toString();
+  request.fields[ORDER_NOTE] = noteC.text;
   
- context.read<UserProvider>().setBalance(
-  getdata["data"]["balance"] // This is already an integer or double
-);
+  if (IS_LOCAL_PICKUP != "1" || isStorePickUp != "true") {
+    request.fields[DEL_CHARGE] = deliveryCharge.toString();
+  }
+  
+  final selectedMosque = context.read<MosqueProvider>().selectedMosque;
+  request.fields[ADD_ID] = selectedMosque != null ? selectedMosque.id! : "999";
+  if (IS_LOCAL_PICKUP == "1") {
+    request.fields[LOCAL_PICKUP] = isStorePickUp == "true" ? "1" : "0";
+  }
+  request.fields[ACTIVE_STATUS] = paymentMethod == getTranslated(context, 'COD_LBL') ? PLACED : WAITING;
 
-  final String orderId = getdata["data"]["order_id"].toString();
-              if (paymentMethod == getTranslated(context, 'RAZORPAY_LBL')) {
-                razorpayPayment(orderId, msg);
-              
-              } else if (paymentMethod == getTranslated(context, 'PAYPAL_LBL')) {
-                paypalPayment(orderId);
-              } else if (paymentMethod == getTranslated(context, 'STRIPE_LBL')) {
-                stripePayment(
-                  stripePayId,
-                  orderId,
-                  tranId == 'succeeded' ? PLACED : WAITING,
-                  msg,
-                  true,
-                );
-              } else if (paymentMethod == getTranslated(context, 'PAYTM_LBL')) {
-                paytmPayment(tranId, orderId, SUCCESS, msg, true);
-              } else if (paymentMethod ==
-                  getTranslated(context, 'FLUTTERWAVE_LBL')) {
-                flutterwavePayment(tranId, orderId, SUCCESS, msg, true);
-              } else if (paymentMethod ==
-                  getTranslated(context, 'MIDTRANS_LBL')) {
-                midTrasPayment(
-                  orderId,
-                  tranId == 'succeeded' ? PLACED : WAITING,
-                  msg,
-                  true,
-                );
-              } else if (paymentMethod ==
-                  getTranslated(context, 'MY_FATOORAH_LBL')) {
-                fatoorahPayment(
-                  tranId,
-                  orderId,
-                  tranId == 'succeeded' ? PLACED : WAITING,
-                  msg,
-                  true,
-                );
-              } else if (paymentMethod ==
-                  getTranslated(context, 'INSTAMOJO_LBL')) {
-                instamojoPayment(orderId);
-              } else {
-                context.read<UserProvider>().setCartCount("0");
-                clearCart();
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  Routers.orderSuccessScreen,
-                  (route) => route.isFirst,
-                );
-              }
-            } else {
-              setSnackbar(msg!, context);
-              context.read<CartProvider>().setProgress(false);
-            }
-          }
-        } on TimeoutException catch (_) {
-          if (mounted) {
-            checkoutState?.call(() {
-              _placeOrder = true;
-            });
-          }
-          context.read<CartProvider>().setProgress(false);
-        }
+  try {
+    // Attach prescription images if available.
+    if (prescriptionImages.isNotEmpty) {
+      for (var i = 0; i < prescriptionImages.length; i++) {
+        final mimeType = lookupMimeType(prescriptionImages[i].path);
+        final extension = mimeType!.split("/");
+        final pic = await http.MultipartFile.fromPath(
+          DOCUMENT,
+          prescriptionImages[i].path,
+          contentType: MediaType('image', extension[1]),
+        );
+        request.files.add(pic);
+      }
+    }
+    final response = await request.send();
+    final responseData = await response.stream.toBytes();
+    final responseString = String.fromCharCodes(responseData);
+    _placeOrder = true;
+    final getdata = json.decode(responseString);
+
+    if (response.statusCode == 200 && !getdata["error"]) {
+      context.read<UserProvider>().setBalance(getdata["data"]["balance"]);
+      final String orderId = getdata["data"]["order_id"].toString();
+
+      // Handle other payment-specific routing.
+      if (paymentMethod == getTranslated(context, 'RAZORPAY_LBL')) {
+        razorpayPayment(orderId, getdata["message"]);
+      } else if (paymentMethod == getTranslated(context, 'STRIPE_LBL')) {
+        stripePayment(stripePayId, orderId, tranId == 'succeeded' ? PLACED : WAITING, getdata["message"], true);
+      } else if (paymentMethod == getTranslated(context, 'PAYTM_LBL')) {
+        paytmPayment(tranId, orderId, SUCCESS, getdata["message"], true);
+      } else if (paymentMethod == getTranslated(context, 'FLUTTERWAVE_LBL')) {
+        flutterwavePayment(tranId, orderId, SUCCESS, getdata["message"], true);
+      } else if (paymentMethod == getTranslated(context, 'MIDTRANS_LBL')) {
+        midTrasPayment(orderId, tranId == 'succeeded' ? PLACED : WAITING, getdata["message"], true);
+      } else if (paymentMethod == getTranslated(context, 'MY_FATOORAH_LBL')) {
+        fatoorahPayment(tranId, orderId, tranId == 'succeeded' ? PLACED : WAITING, getdata["message"], true);
       } else {
-        if (mounted) {
-          checkoutState?.call(() {
-            _isNetworkAvailable = false;
-          });
-        }
-      }
-    }
-
-    Future<void> instamojoPayment(String orderId) async {
-      try {
-        final parameter = {
-          USER_ID: context.read<UserProvider>().userId,
-          ORDER_ID: orderId,
-        };
-        apiBaseHelper.postAPICall(getInstamojoApi, parameter).then(
-          (getdata) {
-            final bool error = getdata["error"];
-            final String? msg = getdata["message"];
-            if (!error) {
-              final String? data = getdata["data"]["longurl"];
-              print("instamojo data url***$data");
-              print('******response = $getdata');
-              if (getdata['data']['longurl'] != null &&
-                  getdata['data']['longurl'] != '') {
-                final String? data = getdata['data']['longurl'];
-                Navigator.push(
-                  context,
-                  CupertinoPageRoute(
-                    builder: (BuildContext context) => InstamojoWebview(
-                      url: data,
-                      from: "order",
-                      orderId: orderId,
-                    ),
-                  ),
-                );
-              } else {
-                deleteOrders(orderId);
-                setSnackbar(getTranslated(context, 'somethingMSg')!, context);
-              }
-            } else {
-              deleteOrders(orderId);
-              setSnackbar(msg!, context);
-            }
-            context.read<CartProvider>().setProgress(false);
-          },
-          onError: (error) {
-            setSnackbar(error.toString(), context);
-          },
+        // Default: clear the cart and navigate to order success screen.
+        context.read<UserProvider>().setCartCount("0");
+        clearCart();
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          Routers.orderSuccessScreen,
+          (route) => route.isFirst,
         );
-      } on TimeoutException catch (_) {
-        setSnackbar(getTranslated(context, 'somethingMSg')!, context);
       }
+    } else {
+      setSnackbar(getdata["message"], context);
     }
+  } on TimeoutException catch (_) {
+    checkoutState?.call(() {
+      _placeOrder = true;
+    });
+    context.read<CartProvider>().setProgress(false);
+  } finally {
+    context.read<CartProvider>().setProgress(false);
+  }
+}
 
-    Future<void> paypalPayment(String orderId) async {
-      try {
-        final parameter = {
-          ORDER_ID: orderId,
-          AMOUNT: usedBalance > 0
-              ? totalPrice.toString()
-              : isStorePickUp == "false"
-                  ? (totalPrice + deliveryCharge).toString()
-                  : totalPrice.toString(),
-        };
-        apiBaseHelper.postAPICall(paypalTransactionApi, parameter).then(
-          (getdata) {
-            final bool error = getdata["error"];
-            final String? msg = getdata["message"];
-            if (!error) {
-              final String? data = getdata["data"];
-              print("paypal data url***$data");
-              Navigator.push(
-                context,
-                CupertinoPageRoute(
-                  builder: (BuildContext context) => PaypalWebview(
-                    url: data,
-                    from: "order",
-                    orderId: orderId,
-                  ),
-                ),
-              );
-            } else {
-              setSnackbar(msg!, context);
-            }
-            context.read<CartProvider>().setProgress(false);
-          },
-          onError: (error) {
-            setSnackbar(error.toString(), context);
-          },
+
+Future<void> initiateSkipCashPayment(
+  BuildContext context,
+  String orderId,
+  double amount, {
+  required double totalPrice,
+  required double deliveryCharge,
+  required double usedBalance,
+  required String isStorePickUp,
+  required String? selDate,
+  required String? selTime,
+  required String baseUrl,
+  required Future<void> Function(String?) placeOrder,
+}) async {
+  final Logger _log = Logger('SkipCashPayment');
+  _log.info('START: initiateSkipCashPayment called with orderId: $orderId, amount: $amount');
+  _log.info('Parameters: totalPrice=$totalPrice, deliveryCharge=$deliveryCharge, usedBalance=$usedBalance, isStorePickUp=$isStorePickUp, selDate=$selDate, selTime=$selTime, baseUrl=$baseUrl');
+
+  if (!context.mounted) {
+    _log.severe('Context is not mounted at start, cannot proceed');
+    return;
+  }
+
+  final cartProvider = context.read<CartProvider>();
+  final userProvider = context.read<UserProvider>();
+
+  final String? jwtToken = HiveUtils.getJWT();
+  if (jwtToken == null || jwtToken.isEmpty) {
+    setSnackbar('Please log in again to proceed with payment', context);
+    Navigator.pushReplacementNamed(context, '/login');
+    return;
+  }
+
+  if (cartProvider.cartList.isEmpty) {
+    setSnackbar('Cart is empty', context);
+    return;
+  }
+
+  final cartItem = cartProvider.cartList[0];
+
+  double finalAmount = usedBalance > 0
+      ? totalPrice
+      : isStorePickUp == "false"
+          ? (totalPrice + deliveryCharge)
+          : totalPrice;
+
+  if (finalAmount <= 0) {
+    setSnackbar('Invalid payment amount', context);
+    return;
+  }
+
+  final nameParts = userProvider.userName.isNotEmpty
+      ? userProvider.userName.split(' ')
+      : ['John', 'Doe'];
+  final firstName = nameParts[0];
+  final lastName = nameParts.length > 1 ? nameParts[1] : 'Doe';
+  final phone = userProvider.mobile.isNotEmpty ? userProvider.mobile : '97412345678';
+  final email = userProvider.email.isNotEmpty ? userProvider.email : 'user@example.com';
+
+  final cartData = {
+    'total': totalPrice,
+    'delivery_charge': deliveryCharge,
+    'product_variant_id': cartItem.varientId,
+    'quantity': cartItem.qty,
+    'user_id': userProvider.userId,
+    'address_id': '999',
+    'local_pickup': isStorePickUp == "true" ? '1' : '0',
+    'mosque_name': 'Default Mosque',
+    'delivery_date': selDate,
+    'delivery_time': selTime,
+  };
+
+  final body = {
+    'amount': finalAmount.toStringAsFixed(2),
+    'order_id': orderId,
+    'device_os': Platform.isAndroid ? 'android' : 'ios',
+    'fcm_id': '',
+    'cart_data': cartData, // ✅ Send as nested object
+
+    'first_name': firstName,
+    'last_name': lastName,
+    'phone': phone,
+    'email': email,
+  };
+
+  try {
+    cartProvider.setProgress(true);
+    _log.info('Making SkipCash API call to: ${baseUrl}skipcash');
+    final response = await http.post(
+      Uri.parse('${baseUrl}skipcash'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $jwtToken',
+      },
+      body: jsonEncode(body),
+    );
+
+    final data = jsonDecode(response.body);
+    _log.info('SkipCash Payment API Response: $data');
+
+    if (response.statusCode == 200 &&
+        data['error'] == false &&
+        data['resultObj'] != null) {
+      final result = data['resultObj'];
+      _log.info('Result object: $result');
+
+      if (result['status'] == 'paid') {
+        await placeOrder(result['transactionId'] ?? 'skipcash-$orderId');
+      } else if (result['status'] == 'new' && result['payUrl'] != null) {
+        final route = MaterialPageRoute(
+          builder: (context) => SkipCashWebView(
+            payUrl: result['payUrl'],
+            paymentId: result['transactionId'], // required field for verification
+            onSuccess: (transactionId) async {
+              await placeOrder(transactionId); // place order only after verification success
+            },
+            onError: (error) {
+              setSnackbar(error, context);
+              deleteOrders(orderId); // Optional: clear abandoned order
+              if (context.mounted) Navigator.pop(context);
+            },
+          ),
         );
-      } on TimeoutException catch (_) {
-        setSnackbar(getTranslated(context, 'somethingMSg')!, context);
+        _log.info('Navigating to SkipCashWebView with payUrl: ${result['payUrl']}');
+        await Navigator.push(context, route);
+      } else {
+        setSnackbar('SkipCash payment not completed', context);
+        return;
       }
+    } else {
+      setSnackbar(data['message'] ?? 'SkipCash payment failed', context);
+      return;
     }
+  } catch (e, stackTrace) {
+    _log.severe('SkipCash Exception: $e', e, stackTrace);
+    setSnackbar('Something went wrong: $e', context);
+    return;
+  } finally {
+    cartProvider.setProgress(false);
+    _log.info('END: initiateSkipCashPayment');
+  }
+}
+
+
+
+
+
+void setSnackbar(String message, BuildContext context) {
+  _log.info('Showing snackbar: $message, context.mounted=${context.mounted}');
+  if (context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  } else {
+    _log.warning('Cannot show snackbar, context not mounted');
+  }
+}
+
+
+    
+
+   
 
     Future<void> addTransaction(
       String? tranId,
@@ -5555,51 +5578,82 @@ Widget address() {
       return false;
     }
 
-    void confirmDialog(List<SectionModel> cartList) {
-      showGeneralDialog(
-        barrierColor: Theme.of(context).colorScheme.black.withOpacity(0.5),
-        transitionBuilder: (context, a1, a2, widget) {
-          return Transform.scale(
-            scale: a1.value,
-            child: Opacity(
-              opacity: a1.value,
-              child: AlertDialog(
-                contentPadding: EdgeInsets.zero,
-                elevation: 2.0,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(5.0)),
-                ),
-                content: Form(
-                  key: _formkey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20.0, 20.0, 0, 2.0),
-                        child: Text(
-                          getTranslated(context, 'CONFIRM_ORDER')!,
-                          style: Theme.of(this.context)
-                              .textTheme
-                              .titleMedium!
-                              .copyWith(
-                                color: Theme.of(context).colorScheme.fontColor,
-                              ),
-                        ),
-                      ),
-                      Divider(
-                        color: Theme.of(context).colorScheme.lightBlack,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20.0, 0, 20.0, 0),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
+   void confirmDialog(List<SectionModel> cartList) {
+  showGeneralDialog(
+    barrierColor: Theme.of(context).colorScheme.black.withOpacity(0.5),
+    transitionBuilder: (context, a1, a2, widget) {
+      return Transform.scale(
+        scale: a1.value,
+        child: Opacity(
+          opacity: a1.value,
+          child: AlertDialog(
+            contentPadding: EdgeInsets.zero,
+            elevation: 2.0,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(5.0)),
+            ),
+            content: Form(
+              key: _formkey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20.0, 20.0, 0, 2.0),
+                    child: Text(
+                      getTranslated(context, 'CONFIRM_ORDER')!,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium!
+                          .copyWith(
+                            color: Theme.of(context).colorScheme.fontColor,
+                          ),
+                    ),
+                  ),
+                  Divider(
+                    color: Theme.of(context).colorScheme.lightBlack,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20.0, 0, 20.0, 0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
+                            Text(
+                              getTranslated(context, 'SUBTOTAL')!,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall!
+                                  .copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .lightBlack2,
+                                  ),
+                            ),
+                            buildConvertedPrice(
+                              context,
+                              originalPrice,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall!
+                                  .copyWith(
+                                    color:
+                                        Theme.of(context).colorScheme.fontColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                          ],
+                        ),
+                        if (cartList[0].productList![0].productType !=
+                            'digital_product')
+                          if (isStorePickUp == "false")
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  getTranslated(context, 'SUBTOTAL')!,
+                                  getTranslated(context, 'DELIVERY_CHARGE')!,
                                   style: Theme.of(context)
                                       .textTheme
                                       .titleSmall!
@@ -5610,226 +5664,186 @@ Widget address() {
                                       ),
                                 ),
                                 buildConvertedPrice(
-  context,
-  originalPrice,
-  style: Theme.of(context).textTheme.titleSmall!.copyWith(
-        color: Theme.of(context).colorScheme.fontColor,
-        fontWeight: FontWeight.bold,
-      ),
-),
-
+                                  context,
+                                  deliveryCharge,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleSmall!
+                                      .copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .fontColor,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
                               ],
                             ),
-                            if (cartList[0].productList![0].productType !=
-                                'digital_product')
-                              if (isStorePickUp == "false")
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      getTranslated(
-                                        context,
-                                        'DELIVERY_CHARGE',
-                                      )!,
+                        if (isPromoValid!)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                getTranslated(context, 'PROMO_CODE_DIS_LBL')!,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall!
+                                    .copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .lightBlack2,
+                                    ),
+                              ),
+                              buildConvertedPrice(
+                                context,
+                                promoAmount,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall!
+                                    .copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .fontColor,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ],
+                          )
+                        else
+                          const SizedBox.shrink(),
+                        if (isUseWallet!)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                getTranslated(context, 'WALLET_BAL')!,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall!
+                                    .copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .lightBlack2,
+                                    ),
+                              ),
+                              buildConvertedPrice(
+                                context,
+                                usedBalance,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall!
+                                    .copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .fontColor,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ],
+                          )
+                        else
+                          const SizedBox.shrink(),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                getTranslated(context, 'TOTAL_PRICE')!,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall!
+                                    .copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .lightBlack2,
+                                    ),
+                              ),
+                              usedBalance > 0
+                                  ? buildConvertedPrice(
+                                      context,
+                                      totalPrice,
                                       style: Theme.of(context)
                                           .textTheme
-                                          .titleSmall!
+                                          .titleMedium!
                                           .copyWith(
                                             color: Theme.of(context)
                                                 .colorScheme
-                                                .lightBlack2,
+                                                .fontColor,
+                                            fontWeight: FontWeight.bold,
                                           ),
-                                    ),
-                                    buildConvertedPrice(
-  context,
-  deliveryCharge,
-  style: Theme.of(context).textTheme.titleSmall!.copyWith(
-        color: Theme.of(context).colorScheme.fontColor,
-        fontWeight: FontWeight.bold,
-      ),
-)
-
-                                  ],
-                                ),
-                            if (isPromoValid!)
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    getTranslated(
-                                      context,
-                                      'PROMO_CODE_DIS_LBL',
-                                    )!,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleSmall!
-                                        .copyWith(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .lightBlack2,
+                                    )
+                                  : isStorePickUp == "false"
+                                      ? buildConvertedPrice(
+                                          context,
+                                          totalPrice + deliveryCharge,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium!
+                                              .copyWith(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .fontColor,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                        )
+                                      : buildConvertedPrice(
+                                          context,
+                                          totalPrice,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium!
+                                              .copyWith(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .fontColor,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                         ),
-                                  ),
-                                  buildConvertedPrice(
-  context,
-  promoAmount,
-  style: Theme.of(context).textTheme.titleSmall!.copyWith(
-        color: Theme.of(context).colorScheme.fontColor,
-        fontWeight: FontWeight.bold,
-      ),
-)
-
-                                ],
-                              )
-                            else
-                              const SizedBox.shrink(),
-                            if (isUseWallet!)
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    getTranslated(
-                                      context,
-                                      'WALLET_BAL',
-                                    )!,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleSmall!
-                                        .copyWith(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .lightBlack2,
-                                        ),
-                                  ),
-                                  buildConvertedPrice(
-  context,
-  usedBalance,
-  style: Theme.of(context).textTheme.titleSmall!.copyWith(
-        color: Theme.of(context).colorScheme.fontColor,
-        fontWeight: FontWeight.bold,
-      ),
-)
-
-                                ],
-                              )
-                            else
-                              const SizedBox.shrink(),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8.0),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    getTranslated(context, 'TOTAL_PRICE')!,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleSmall!
-                                        .copyWith(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .lightBlack2,
-                                        ),
-                                  ),
-                                  usedBalance > 0
-    ? buildConvertedPrice(
-        context,
-        totalPrice,
-        style: Theme.of(context).textTheme.titleMedium!.copyWith(
-              color: Theme.of(context).colorScheme.fontColor,
-              fontWeight: FontWeight.bold,
-            ),
-      )
-    : isStorePickUp == "false"
-        ? buildConvertedPrice(
-            context,
-            totalPrice + deliveryCharge,
-            style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                  color: Theme.of(context).colorScheme.fontColor,
-                  fontWeight: FontWeight.bold,
-                ),
-          )
-        : buildConvertedPrice(
-            context,
-            totalPrice,
-            style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                  color: Theme.of(context).colorScheme.fontColor,
-                  fontWeight: FontWeight.bold,
-                ),
-          )
-
-                                ],
-                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: TextField(
+                            controller: noteC,
+                            style: Theme.of(context).textTheme.titleSmall,
+                            decoration: InputDecoration(
+                              contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 10),
+                              border: InputBorder.none,
+                              filled: true,
+                              fillColor: Theme.of(context)
+                                  .colorScheme
+                                  .primarytheme
+                                  .withOpacity(0.1),
+                              hintText: getTranslated(context, 'NOTE'),
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 10,
-                              ),
-                              child: TextField(
-                                controller: noteC,
-                                style: Theme.of(context).textTheme.titleSmall,
-                                decoration: InputDecoration(
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                  ),
-                                  border: InputBorder.none,
-                                  filled: true,
-                                  fillColor: Theme.of(context)
-                                      .colorScheme
-                                      .primarytheme
-                                      .withOpacity(0.1),
-                                  hintText: getTranslated(context, 'NOTE'),
-                                ),
-                              ),
-                            ),
-                            if (cartList[0].productList![0].productType !=
-                                'digital_product')
-                              const SizedBox.shrink()
-                            else
+                          ),
+                        ),
+                        if (cartList[0].productList![0].productType !=
+                            'digital_product')
+                          const SizedBox.shrink()
+                        else
+                          Column(
+                            children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 5,
-                                ),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 5),
                                 child: TextFormField(
-      // Validation for mobile number:
-      validator: (val) {
-        if (val == null || val.trim().isEmpty) {
-          return "Mobile number is required";
-        }
-        // Optionally add more mobile-specific validations
-        return null;
-      },
-      controller: mobileController,
-      style: Theme.of(context).textTheme.titleSmall,
-      decoration: InputDecoration(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-        border: InputBorder.none,
-        filled: true,
-        fillColor: Theme.of(context).colorScheme.primarytheme.withOpacity(0.1),
-        hintText: getTranslated(context, 'ENTER_MOBILE_NUMBER') ?? 'Enter mobile number',
-
-      ),
-    ),
-  ),
-   Container(
-    padding: const EdgeInsets.symmetric(vertical: 5),
-                                child: TextFormField(
-                                  validator: (val) => validateEmail(
-                                    val!,
-                                    getTranslated(
-                                      context,
-                                      'EMAIL_REQUIRED',
-                                    ),
-                                    getTranslated(
-                                      context,
-                                      'VALID_EMAIL',
-                                    ),
-                                  ),
-                                  controller: emailController,
+                                  validator: (val) {
+                                    if (val == null || val.trim().isEmpty) {
+                                      return getTranslated(
+                                              context, 'MOBILE_REQUIRED') ??
+                                          'Mobile number is required';
+                                    }
+                                    // Add more mobile-specific validations if needed
+                                    return null;
+                                  },
+                                  controller: mobileController,
                                   style: Theme.of(context).textTheme.titleSmall,
                                   decoration: InputDecoration(
                                     contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                    ),
+                                        horizontal: 10),
                                     border: InputBorder.none,
                                     filled: true,
                                     fillColor: Theme.of(context)
@@ -5837,108 +5851,103 @@ Widget address() {
                                         .primarytheme
                                         .withOpacity(0.1),
                                     hintText: getTranslated(
-                                      context,
-                                      'ENTER_EMAIL_ID_LBL',
-                                    ),
+                                            context, 'ENTER_MOBILE_NUMBER') ??
+                                        'Enter mobile number',
                                   ),
                                 ),
                               ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                actions: <Widget>[
-                  TextButton(
-                    child: Text(
-                      getTranslated(context, 'CANCEL')!,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.lightBlack,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
+                              Container(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 5),
+                                child: TextFormField(
+                                  validator: (val) => validateEmail(
+                                    val!,
+                                    getTranslated(context, 'EMAIL_REQUIRED'),
+                                    getTranslated(context, 'VALID_EMAIL'),
+                                  ),
+                                  controller: emailController,
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                  decoration: InputDecoration(
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 10),
+                                    border: InputBorder.none,
+                                    filled: true,
+                                    fillColor: Theme.of(context)
+                                        .colorScheme
+                                        .primarytheme
+                                        .withOpacity(0.1),
+                                    hintText: getTranslated(
+                                            context, 'ENTER_EMAIL_ID_LBL') ??
+                                        'Enter email',
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
                     ),
-                    onPressed: () {
-                      checkoutState?.call(() {
-                        _placeOrder = true;
-                        isPromoValid = false;
-                      });
-                      Navigator.pop(context);
-                    },
-                  ),
-                  TextButton(
-                    child: Text(
-                      getTranslated(context, 'DONE')!,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primarytheme,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    onPressed: () {
-                      if (cartList[0].productList![0].productType ==
-                          'digital_product') {
-                        print("validateandsave****${validateAndSave()}");
-                        if (validateAndSave()) {
-                          if (paymentMethod ==
-                              getTranslated(context, 'BANKTRAN')) {
-                            Navigator.pop(context);
-                            bankTransfer(
-                              context,
-                              onTapCancel: () {
-                                checkoutState?.call(() {
-                                  _placeOrder = true;
-                                });
-                              },
-                              onTapDone: () {
-                                placeOrder('');
-                              },
-                            );
-                          } else {
-                            placeOrder('');
-                            Navigator.pop(context);
-                          }
-                        }
-                      } else {
-                        print("paymethod****$paymentMethod");
-                        if (paymentMethod == getTranslated(context, 'BANKTRAN')) {
-                          Navigator.pop(context);
-                          bankTransfer(
-                            context,
-                            onTapCancel: () {
-                              checkoutState?.call(() {
-                                _placeOrder = true;
-                              });
-                            },
-                            onTapDone: () {
-                              placeOrder('');
-                            },
-                          );
-                        } else {
-                          placeOrder('');
-                          Navigator.pop(context);
-                        }
-                      }
-                    },
                   ),
                 ],
               ),
             ),
-          );
-        },
-        barrierLabel: '',
-        context: context,
-        pageBuilder: (context, animation1, animation2) {
-          return const SizedBox.shrink();
-        },
-      ).then(
-        (value) => setState(() {
-          confDia = true;
-        }),
+            actions: <Widget>[
+              TextButton(
+                child: Text(
+                  getTranslated(context, 'CANCEL')!,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.lightBlack,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                onPressed: () {
+                  checkoutState?.call(() {
+                    _placeOrder = true;
+                    isPromoValid = false;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              TextButton(
+                child: Text(
+                  getTranslated(context, 'DONE')!,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primarytheme,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                onPressed: () {
+                  // Validate form for digital products (mobile, email)
+                  if (cartList[0].productList![0].productType ==
+                      'digital_product') {
+                    _log.info(
+                        'Validating form for digital product: ${validateAndSave()}');
+                    if (!validateAndSave()) {
+                      return; // Stop if validation fails
+                    }
+                  }
+                  // Proceed to place order and close dialog
+                  placeOrder('');
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        ),
       );
-    }
-
+    },
+    barrierLabel: '',
+    context: context,
+    pageBuilder: (context, animation1, animation2) {
+      return const SizedBox.shrink();
+    },
+  ).then(
+    (value) => setState(() {
+      confDia = true;
+    }),
+  );
+}
     Future<void> checkDeliverable(
   int from, {
   bool showErrorMessage = true,

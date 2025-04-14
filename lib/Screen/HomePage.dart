@@ -1963,8 +1963,9 @@ class NeumorphicSections extends StatelessWidget {
     {
       "title": "FOOD_DATES",
       "icon": "assets/images/date-fruit.png",
-      "route": Routers.wateringFeedingScreen,
+      "route": Routers.productListScreen,
       "color": Color(0xFF1ebaaa),
+      "categoryId": "112",
       
     },
   ];
@@ -2019,8 +2020,8 @@ class NeumorphicSections extends StatelessWidget {
   } else if (icon is String) {
     iconWidget = Image.asset(
       icon,
-      width: 55,
-      height: 55,
+      width: 70,
+      height: 70,
       // Optionally, if your asset is a single-color icon, you can tint it:
       // color: Colors.white,
     );

@@ -18,6 +18,7 @@ import 'package:customer/Screen/Profile/widget/editProfileBottomSheet.dart';
 import 'package:customer/Screen/ReferEarn.dart';
 import 'package:customer/app/languages.dart';
 import 'package:customer/app/routes.dart';
+import '../about_us.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +31,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:mime/mime.dart';
 import 'package:provider/provider.dart';
+import '../PrivacyScreen.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../Helper/Constant.dart';
@@ -512,22 +514,25 @@ class StateProfile extends State<MyProfile> with TickerProviderStateMixin {
                 CupertinoPageRoute(
                     builder: (context) => const customerSupport(),),);
           } else if (title == getTranslated(context, 'TERM')) {
-            Navigator.push(
-                context,
-                CupertinoPageRoute(
-                  builder: (context) => PrivacyPolicy(
-                    title: getTranslated(context, 'TERM'),
-                  ),
-                ),);
-          } else if (title == getTranslated(context, 'PRIVACY')) {
-            Navigator.push(
-                context,
-                CupertinoPageRoute(
-                  builder: (context) => PrivacyPolicy(
-                    title: getTranslated(context, 'PRIVACY'),
-                  ),
-                ),);
-          } else if (title == getTranslated(context, 'RATE_US')) {
+           Navigator.pushNamed(context, Routers.termsScreen, arguments: {
+  'title': getTranslated(context, 'TERM'),
+});
+
+
+
+        } else if (title == getTranslated(context, 'PRIVACY')) {
+  Navigator.pushNamed(
+  context,
+  Routers.privacyPolicyScreen,
+  arguments: {
+    'title': getTranslated(context, 'PRIVACY'),
+    'type': PRIVACY_POLICY,
+  },
+);
+
+}
+
+ else if (title == getTranslated(context, 'RATE_US')) {
             _openStoreListing();
           } else if (title == getTranslated(context, 'SHARE_APP')) {
             final str =
@@ -539,13 +544,15 @@ class StateProfile extends State<MyProfile> with TickerProviderStateMixin {
                     MediaQuery.of(context).size.width,
                     MediaQuery.of(context).size.height / 2,),);
           } else if (title == getTranslated(context, 'ABOUT_LBL')) {
-            Navigator.push(
-                context,
-                CupertinoPageRoute(
-                  builder: (context) => PrivacyPolicy(
-                    title: getTranslated(context, 'ABOUT_LBL'),
-                  ),
-                ),);
+           Navigator.push(
+  context,
+  CupertinoPageRoute(
+    builder: (context) => AboutUs(
+      title: getTranslated(context, 'ABOUT_LBL'),
+    ),
+  ),
+);
+
           } else if (title == getTranslated(context, 'SHIPPING_PO_LBL')) {
             Navigator.push(
                 context,

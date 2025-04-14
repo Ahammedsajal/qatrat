@@ -499,8 +499,15 @@
   "SELECT_FROM_MAP": "Select from Map",
   "NO_MOSQUE_SELECTED": "No Mosque Selected",
   "DELIVERING_TO_MOSQUE": "Delivering to:",
-  "CHANGE_MOSQUE": "Change Mosque"
+  "CHANGE_MOSQUE": "Change Mosque",
 
+  "about_us_content": "<p><strong>About Us – Qatra: Essentials Delivery for Mosques</strong></p><p><strong>Who We Are</strong><br>We are Qatra. ...</p>...",
+  
+    "PRIVACY": "Privacy Policy",
+    "TERM": "Terms & Conditions",
+    "privacy_content": "<p class=\\\"MsoNormal\\\" align=\\\"center\\\">...Your full English privacy policy HTML...</p>",
+    "terms_content": "<p class=\\\"MsoNormal\\\" align=\\\"center\\\">...Your full English terms & conditions HTML...</p>"
+  
   
   
 }

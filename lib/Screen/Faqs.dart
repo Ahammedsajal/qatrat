@@ -211,38 +211,53 @@ class StateFaqs extends State<Faqs> with TickerProviderStateMixin {
   }
 
   Future<void> getFaqs() async {
-    _isNetworkAvail = await isNetworkAvailable();
-    if (_isNetworkAvail) {
-      try {
-        final Map param = {};
-        apiBaseHelper.postAPICall(getFaqsApi, param).then((getdata) {
-          final bool error = getdata["error"];
-          final String? msg = getdata["message"];
-          if (!error) {
-            final data = getdata["data"];
-            faqsList =
-                (data as List).map((data) => FaqsModel.fromJson(data)).toList();
-          } else {
-            setSnackbar(msg!, context);
-          }
-          if (mounted) {
-            setState(() {
-              _isLoading = false;
-            });
-          }
-        }, onError: (error) {
-          setSnackbar(error.toString(), context);
-        },);
-      } on TimeoutException catch (_) {
-        setSnackbar(getTranslated(context, 'somethingMSg')!, context);
+  _isNetworkAvail = await isNetworkAvailable();
+  if (_isNetworkAvail) {
+    try {
+      final Map param = {};
+      final getdata = await apiBaseHelper.postAPICall(getFaqsApi, param);
+      final bool error = getdata["error"];
+      final String? msg = getdata["message"];
+      if (!error) {
+        final data = getdata["data"];
+        final List<FaqsModel> tempList =
+            (data as List).map((data) => FaqsModel.fromJson(data)).toList();
+
+        // Apply translation using getTranslated
+        Locale currentLocale = Localizations.localeOf(context);
+        String langCode = currentLocale.languageCode;
+
+        faqsList = tempList.map((faq) {
+          // Assuming you're using keys like "faq_q_1", "faq_a_1", etc.
+          final questionKey = "faq_q_${faq.id}";
+          final answerKey = "faq_a_${faq.id}";
+
+          return FaqsModel(
+            id: faq.id,
+            question: getTranslated(context, questionKey) ?? faq.question,
+            answer: getTranslated(context, answerKey) ?? faq.answer,
+          );
+        }).toList();
+      } else {
+        setSnackbar(msg!, context);
       }
-    } else {
+
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _isNetworkAvail = false;
         });
       }
+    } on TimeoutException catch (_) {
+      setSnackbar(getTranslated(context, 'somethingMSg')!, context);
+    }
+  } else {
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+        _isNetworkAvail = false;
+      });
     }
   }
+}
+
 }

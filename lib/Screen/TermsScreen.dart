@@ -13,26 +13,26 @@ import '../utils/blured_router.dart';
 import 'HomePage.dart';
 import '../app/api_language.dart';
 
-
-class AboutUs extends StatefulWidget {
+class TermsAndConditions extends StatefulWidget {
   final String? title;
 
-  const AboutUs({super.key, this.title});
+  const TermsAndConditions({super.key, this.title});
 
   static Route route(RouteSettings settings) {
     final Map? arguments = settings.arguments as Map?;
     return BlurredRouter(
-      builder: (context) => AboutUs(
+      builder: (context) => TermsAndConditions(
         title: arguments?['title'],
       ),
     );
   }
 
   @override
-  State<AboutUs> createState() => _AboutUsState();
+  State<TermsAndConditions> createState() => _TermsAndConditionsState();
 }
 
-class _AboutUsState extends State<AboutUs> with TickerProviderStateMixin {
+class _TermsAndConditionsState extends State<TermsAndConditions>
+    with TickerProviderStateMixin {
   bool _isLoading = true;
   String? content;
   bool _isNetworkAvail = true;
@@ -64,12 +64,13 @@ class _AboutUsState extends State<AboutUs> with TickerProviderStateMixin {
     _isNetworkAvail = await isNetworkAvailable();
     if (_isNetworkAvail) {
       try {
-        final parameter = {TYPE: ABOUT_US};
+        final parameter = {TYPE: TERM_COND};
         final getdata = await apiBaseHelper.postAPICall(getSettingApi, parameter);
         final bool error = getdata["error"];
         if (!error) {
-          String rawContent = getdata["data"][ABOUT_US][0].toString();
+          String rawContent = getdata["data"][TERM_COND][0].toString();
 
+          // Get current locale
           Locale currentLocale = Localizations.localeOf(context);
           if (currentLocale.languageCode != 'en') {
             rawContent = await translateDynamicText(rawContent, currentLocale.languageCode);
@@ -153,26 +154,27 @@ class _AboutUsState extends State<AboutUs> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return _isLoading
         ? Scaffold(
-            appBar: getSimpleAppBar(widget.title ?? getTranslated(context, 'ABOUT_LBL')!, context),
+            appBar: getSimpleAppBar(widget.title ?? getTranslated(context, 'TERM')!, context),
             body: getProgress(context),
           )
         : _isNetworkAvail
             ? Scaffold(
-                appBar: getSimpleAppBar(widget.title ?? getTranslated(context, 'ABOUT_LBL')!, context),
+                appBar: getSimpleAppBar(widget.title ?? getTranslated(context, 'TERM')!, context),
                 body: SingleChildScrollView(
                   child: Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: HtmlWidget(
                       content ?? "",
                       onTapUrl: (url) async {
-                        if (await canLaunchUrl(Uri.parse(url!))) {
+                        if (await canLaunchUrl(Uri.parse(url))) {
                           await launchUrl(Uri.parse(url));
                           return true;
                         } else {
                           throw 'Could not launch $url';
                         }
                       },
-                      onErrorBuilder: (context, element, error) => Text('$element error: $error'),
+                      onErrorBuilder: (context, element, error) =>
+                          Text('$element error: $error'),
                       onLoadingBuilder: (context, element, loadingProgress) =>
                           showCircularProgress(context, true, Theme.of(context).primaryColor),
                       textStyle: TextStyle(color: Theme.of(context).colorScheme.fontColor),
@@ -181,7 +183,7 @@ class _AboutUsState extends State<AboutUs> with TickerProviderStateMixin {
                 ),
               )
             : Scaffold(
-                appBar: getSimpleAppBar(widget.title ?? getTranslated(context, 'ABOUT_LBL')!, context),
+                appBar: getSimpleAppBar(widget.title ?? getTranslated(context, 'TERM')!, context),
                 body: noInternet(context),
               );
   }

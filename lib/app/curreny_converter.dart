@@ -1,7 +1,5 @@
 // currency_converter.dart
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 /// Returns the currency symbol for a given [code].
@@ -20,32 +18,25 @@ String currencySymbol(String code) {
     case 'USD':
       return '\$';
     default:
-      return ''; // For QAR or if none provided.
+      return ''; // Returns an empty string if code is not provided or unknown.
   }
 }
 
-/// Service to fetch currency conversion rates.
+/// Service to provide currency conversion rates manually.
 class CurrencyService {
-  final String _apiUrl =
-      'https://v6.exchangerate-api.com/v6/fa2f1730d27b2e641dccffa9/latest/qar';
+  /// Predefined manual conversion rates.
+  final Map<String, double> _manualRates = {
+    'QAR': 1.0,
+    'SAR': 0.98,
+    'AED': 0.99,
+    'KWT': 0.07,
+    'OMN': 0.11,
+    'USD': 0.27,
+  };
 
   Future<Map<String, double>> fetchRates() async {
-    final response = await http.get(Uri.parse(_apiUrl));
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      // Note: The API returns the conversion rates under "conversion_rates".
-      final rates = data['conversion_rates'] as Map<String, dynamic>;
-      return {
-        'QAR': 1.0,
-        'SAR': rates['SAR']?.toDouble() ?? 0,
-        'AED': rates['AED']?.toDouble() ?? 0,
-        'KWT': rates['KWD']?.toDouble() ?? 0, // Adjust key if needed.
-        'OMN': rates['OMR']?.toDouble() ?? 0,
-        'USD': rates['USD']?.toDouble() ?? 0,
-      };
-    } else {
-      throw Exception('Failed to fetch currency rates');
-    }
+    // Returns the manual conversion rates directly without an API call.
+    return _manualRates;
   }
 }
 
@@ -65,11 +56,11 @@ class CurrencyProvider extends ChangeNotifier {
   Future<void> loadRates() async {
     try {
       _rates = await _service.fetchRates();
-      debugPrint("Fetched rates: $_rates");
+      debugPrint("Loaded manual rates: $_rates");
       notifyListeners();
     } catch (e) {
-      debugPrint("Error fetching rates: $e");
-      // Set fallback rates in case of error.
+      debugPrint("Error loading manual rates: $e");
+      // In case of error, fallback to a predefined set.
       _rates = {
         'QAR': 1.0,
         'SAR': 0.98,
@@ -97,7 +88,6 @@ class CurrencyProvider extends ChangeNotifier {
   }
 }
 
-
 /// A widget that displays a converted price.
 /// 
 /// [basePrice] should be the product’s price in QAR (as provided by your backend).
@@ -113,7 +103,7 @@ Widget buildConvertedPrice(
       double convertedPrice = currencyProvider.convertPrice(basePrice);
       return Text(
         "${currencySymbol(currencyProvider.selectedCurrency)} ${convertedPrice.toStringAsFixed(2)}",
-         style: style ??
+        style: style ??
             (isOriginal
                 ? Theme.of(context).textTheme.labelSmall!.copyWith(
                       decoration: TextDecoration.lineThrough,

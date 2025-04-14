@@ -51,6 +51,10 @@ class CartProvider extends ChangeNotifier {
     _cartList[i].productList![0].prVarientList![index].cartCount = qty;
     notifyListeners();
   }
+void clearCart() {
+  _cartList.clear();
+  notifyListeners();
+}
 
   setCartlist(List<SectionModel> cartList) {
     _cartList.clear();

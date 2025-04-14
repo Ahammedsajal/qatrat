@@ -19,6 +19,9 @@ import 'package:customer/Screen/SignUp.dart';
 import 'package:customer/Screen/Splash.dart';
 import 'package:customer/Screen/SubCategory.dart';
 import 'package:customer/Screen/Verify_Otp.dart';
+import '../Screen/about_us.dart';
+import '../Screen/TermsScreen.dart';
+import '../Screen/PrivacyScreen.dart';
 import 'package:customer/utils/blured_router.dart';
 import 'package:flutter/material.dart';
 import '../Screen/Login.dart';
@@ -30,6 +33,7 @@ import 'package:customer/Screen/watering_feeding.dart';
 import 'package:customer/Screen/iftar.dart';
 import '../cubits/FetchMosquesCubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../settings.dart';
 
 
 
@@ -64,9 +68,16 @@ class Routers {
   static const String orderSuccessScreen = "/orderSuccessScreen";
   static const String favoriteScreen = "/favoriteScreen";
   static const String verifyOTPScreen = "/verifyOTPScreen";
-  static const String privacyPolicyScreen = "/privacyPolicyScreen";
+ static const String privacyPolicyScreen = 'privacy_policy';
+
   static String currentRoute = splash;
   static String previouscustomerRoute = splash;
+  static const String aboutUsScreen = "/aboutUsScreen";
+static const String termsScreen = "/terms";
+static const String PRIVACY_POLICY = 'privacy_policy';
+
+
+
   static Route? onGenerateRouted(RouteSettings routeSettings) {
 
     previouscustomerRoute = currentRoute;
@@ -82,6 +93,20 @@ class Routers {
       child: QatarMosques(isFromCheckout: isFromCheckout),
     ),
   );
+
+case privacyPolicyScreen:
+  return PrivacyScreen.route(routeSettings);
+
+
+case aboutUsScreen:
+  return MaterialPageRoute(
+    builder: (context) => AboutUs(
+      title: 'About Us', // 👈 Use plain text here
+    ),
+  );
+case termsScreen:
+  return TermsAndConditions.route(routeSettings);
+// ✅ Correct
 
 
       case splash:

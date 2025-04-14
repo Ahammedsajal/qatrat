@@ -55,6 +55,14 @@ class StatePrivacy extends State<PrivacyPolicy> with TickerProviderStateMixin {
       ),
     ),);
   }
+static Route route(RouteSettings settings) {
+  final Map? arguments = settings.arguments as Map?;
+  return CupertinoPageRoute(
+    builder: (context) => PrivacyPolicy(
+      title: arguments?['title'],
+    ),
+  );
+}
 
   @override
   void dispose() {

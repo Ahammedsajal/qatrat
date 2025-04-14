@@ -12,7 +12,7 @@ class AppSettings {
   static const String packageName = 'com.customersingle.customer';
 
   // The package name for the iOS app
-  static const String iosPackage = 'com.wrteam.customer';
+  static const String iosPackage = 'com.customersingle.customer';
 
   // The URL link to the iOS app on the App Store (to be replaced with the actual link)
   static const String iosLink = 'your ios link here';
@@ -31,10 +31,10 @@ static const String chatBaseUrl =
 
   // Deep linking configuration
   static const String deepLinkUrlPrefix =
-      'https://customerwrteamin.page.link'; // Prefix for dynamic links
+      'https://qatratkheir.page.link'; // Prefix for dynamic links
   static const String deepLinkName = 'customer.com'; // Hostname for deep links
   static const String shareNavigationWebUrl =
-      "customer.wrteam.co.in"; // Web URL for sharing navigation
+      "qatratkheir.com"; // Web URL for sharing navigation
 
   // Toggle to disable dark mode across the app (set `true` to disable)
   static const bool disableDarkTheme = false;
