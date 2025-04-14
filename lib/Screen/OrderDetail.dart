@@ -12,12 +12,12 @@ import 'package:customer/Provider/CartProvider.dart';
 import 'package:customer/Screen/Review_Gallary.dart';
 import 'package:customer/Screen/Review_Preview.dart';
 import 'package:customer/Screen/cart/Cart.dart';
+import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_html_to_pdf/flutter_html_to_pdf.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:http/http.dart' as http;
@@ -36,6 +36,9 @@ import '../ui/styles/DesignConfig.dart';
 import '../ui/widgets/AppBtn.dart';
 import '../ui/widgets/SimpleAppBar.dart';
 import 'HomePage.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class OrderDetail extends StatefulWidget {
   final OrderModel? model;
@@ -63,6 +66,7 @@ class StateOrder extends State<OrderDetail>
   bool isLoadingmore = true;
   bool _isReturnClick = true;
   String? proId;
+  
   String? image;
   List<File> files = [];
   int _selectedTabIndex = 0;
@@ -85,7 +89,6 @@ class StateOrder extends State<OrderDetail>
     super.initState();
     files.clear();
     reviewPhotos.clear();
-    FlutterDownloader.registerCallback(downloadCallback);
     buttonController = AnimationController(
         duration: const Duration(milliseconds: 2000), vsync: this,);
     buttonSqueezeanimation = Tween(
@@ -115,15 +118,7 @@ class StateOrder extends State<OrderDetail>
     super.dispose();
   }
 
-  static void downloadCallback(
-    String id,
-    int status,
-    int progress,
-  ) {
-    final SendPort send =
-        IsolateNameServer.lookupPortByName('downloader_send_port')!;
-    send.send([id, status, progress]);
-  }
+ 
 
   Future<void> _playAnimation() async {
     try {
@@ -1950,89 +1945,88 @@ void showInvoiceDownloadDialog(BuildContext context, String filePath, String tar
     }
   }
 
-  downloadLinkFile(String orderItemId) async {
-    if (currentLinkForDownload != '') {
-      print("inner link");
-      final status = await Permission.storage.request();
-      if (status == PermissionStatus.granted) {
-        if (mounted) {
-          setState(() {
-            _isProgress = true;
-          });
-        }
-        String? filePath;
-        if (Platform.isIOS) {
-          final target = await getApplicationDocumentsDirectory();
-          filePath = target.path;
-        } else {
-          final externalDirectory = await getExternalStorageDirectory();
-          final dir =
-              await Directory('${externalDirectory!.path}/Download').create();
-          filePath = dir.path;
-        }
-        final fileName = currentLinkForDownload
-            .substring(currentLinkForDownload.lastIndexOf('/') + 1);
-        final File file = File('$filePath/$fileName');
-        final bool hasExisted = await file.exists();
-        if (hasExisted) {
-          final openFile = await OpenFilex.open('$filePath/$fileName');
-        }
-        setSnackbar(getTranslated(context, 'Downloading')!, context);
-        print("filePath : $filePath");
-        final taskid = await FlutterDownloader.enqueue(
-          url: currentLinkForDownload,
-          savedDir: filePath,
-          headers: {'auth': 'test_for_sql_encoding'},
-        ).onError((error, stackTrace) {
-          if (mounted) {
-            setState(() {
-              _isProgress = false;
-            });
-          }
-          setSnackbar('Error : $error', context);
-          return null;
-        }).catchError((error, stackTrace) {
-          if (mounted) {
-            setState(() {
-              _isProgress = false;
-            });
-          }
-        }).whenComplete(() {
-          if (mounted) {
-            setState(() {
-              _isProgress = false;
-            });
-          }
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                getTranslated(context, 'OPEN_DWN_FILE_LBL')!,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Theme.of(context).colorScheme.black),
-              ),
-              action: SnackBarAction(
-                label: getTranslated(context, 'VIEW')!,
-                textColor: Theme.of(context).colorScheme.fontColor,
-                onPressed: () async {
-                  await OpenFilex.open(filePath!);
-                },
-              ),
-              backgroundColor: Theme.of(context).colorScheme.white,
-              elevation: 1.0,
-            ),
-          );
-          cancelOrder('delivered', updateOrderItemApi, orderItemId);
-        });
-        if (mounted) {
-          setState(() {
-            _isProgress = false;
-          });
-        }
-      }
-    } else {
-      setSnackbar('something wrong file is not available yet .', context);
-    }
+  Future<void> downloadLinkFile(String orderItemId) async {
+  // 1) Check if you have a valid download URL:
+  if (currentLinkForDownload.isEmpty) {
+    setSnackbar('something wrong file is not available yet.', context);
+    return;
   }
+
+  // 2) Ask for Storage Permission on Android (iOS requires no run-time permission for Documents dir)
+  final status = await Permission.storage.request();
+  if (status.isDenied || status.isPermanentlyDenied) {
+    // No permission => Show error or request again
+    setSnackbar(getTranslated(context, 'PERMISSION_NOT_ALLOWED')!, context);
+    return;
+  }
+
+  // 3) Choose a download directory
+  setState(() => _isProgress = true);
+  String filePath;
+  if (Platform.isIOS) {
+    final target = await getApplicationDocumentsDirectory();
+    filePath = target.path;
+  } else {
+    final externalDirectory = await getExternalStorageDirectory();
+    final dir = await Directory('${externalDirectory!.path}/Download').create();
+    filePath = dir.path;
+  }
+
+  // 4) Check if file already exists
+  final fileName = currentLinkForDownload.substring(
+      currentLinkForDownload.lastIndexOf('/') + 1);
+  final localFile = File('$filePath/$fileName');
+  bool fileExists = await localFile.exists();
+
+  if (fileExists) {
+    // If file already downloaded, you can prompt the user to open it
+    await OpenFilex.open(localFile.path);
+    setState(() => _isProgress = false);
+    return;
+  }
+
+  // 5) Download using Dio in the foreground
+  try {
+    setSnackbar(getTranslated(context, 'Downloading')!, context);
+    final dio = Dio();
+    await dio.download(
+      currentLinkForDownload,
+      localFile.path,
+      onReceiveProgress: (count, total) {
+        // If you want to show progress, do it here
+      },
+    );
+
+    // 6) Once downloaded, show a "View File" SnackBar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          getTranslated(context, 'OPEN_DWN_FILE_LBL')!,
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Theme.of(context).colorScheme.black),
+        ),
+        action: SnackBarAction(
+          label: getTranslated(context, 'VIEW')!,
+          textColor: Theme.of(context).colorScheme.fontColor,
+          onPressed: () async {
+            await OpenFilex.open(localFile.path);
+          },
+        ),
+        backgroundColor: Theme.of(context).colorScheme.white,
+        elevation: 1.0,
+      ),
+    );
+
+    // 7) Perform any follow-up action (e.g. mark item as 'delivered')
+    cancelOrder('delivered', updateOrderItemApi, orderItemId);
+  } catch (e) {
+    // Handle any error
+    setSnackbar('Error : $e', context);
+  } finally {
+    // Hide progress indicator
+    setState(() => _isProgress = false);
+  }
+}
 
   Future getDownloadLink(String orderItemId) async {
     try {
