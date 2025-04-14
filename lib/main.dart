@@ -2,7 +2,6 @@ import 'package:customer/Helper/Color.dart';
 import 'package:customer/Helper/Constant.dart';
 import 'package:customer/Provider/CartProvider.dart';
 import 'package:customer/Provider/MosqueProvider.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:customer/Provider/CategoryProvider.dart';
 import 'package:customer/Provider/FavoriteProvider.dart';
 import 'package:customer/Provider/FlashSaleProvider.dart';
@@ -57,7 +56,6 @@ GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-    await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
 
   await Hive.initFlutter();
   // Register the adapter for MosqueModel
