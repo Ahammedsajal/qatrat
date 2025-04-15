@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:app_links/app_links.dart';
 import 'package:bottom_bar/bottom_bar.dart';
 import 'package:customer/Helper/Color.dart';
 import 'package:customer/Helper/Constant.dart';
@@ -64,7 +63,6 @@ class HomePageState extends State<Dashboard>
     duration: const Duration(milliseconds: 400),
   );
   FirebaseDynamicLinks dynamicLinks = FirebaseDynamicLinks.instance;
-  late AppLinks _appLinks;
   StreamSubscription<Uri>? _linkSubscription;
   @override
   void dispose() {
@@ -77,7 +75,6 @@ class HomePageState extends State<Dashboard>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    initAppLinks();
     Future.delayed(Duration.zero, () {
       final pushNotificationService = PushNotificationService(context: context);
       pushNotificationService.initialise();
@@ -96,14 +93,7 @@ class HomePageState extends State<Dashboard>
     });
   }
 
-  Future<void> initAppLinks() async {
-    _appLinks = AppLinks();
-    _linkSubscription = _appLinks.uriLinkStream.listen((Uri? uri) {
-      if (uri != null) {
-        handleDeepLink(uri);
-      }
-    });
-  }
+  
 
   Future<void> handleDeepLink(Uri uri) async {
     if (uri.path.contains('/products/details/')) {
@@ -331,7 +321,7 @@ const   MyOrder(),
   if (_selBottom == 1) {
     title = getTranslated(context, 'ABOUT_LBL');
   } else if (_selBottom == 2) {
-    title = getTranslated(context, 'MYORDER');
+    title = getTranslated(context, 'MY_ORDERS_LBL');
   } else if (_selBottom == 3) {
     title = getTranslated(context, 'MYBAG');
   } else if (_selBottom == 4) {
