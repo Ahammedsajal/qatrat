@@ -93,7 +93,6 @@ dependencies:
   hive_flutter: ^1.1.0
   hive_generator: ^2.0.1
   analyzer: ^4.7.0
-  app_links: ^6.4.0
   flutter_launcher_icons: ^0.14.3
   flutter_neumorphic_plus: ^3.4.0
   carousel_slider: ^5.0.0
